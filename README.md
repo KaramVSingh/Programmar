@@ -204,3 +204,25 @@ In this example the whole example is a grammar, A and B are rules, "hello world"
 
 ## Lexer
 We will create a lexer which is able to be either white-space indiferent or take into account white-space. It will return a linked list of tokens which contain information about their match.
+
+### Supported regular expression syntax
+1. \d = [0-9]
+2. \w = [a-zA-Z0-9_]
+3. \s = [\t\n\r ]
+4. \D = [^\d]
+5. \W = [^\w]
+6. \S = [^\s]
+7. + = one or more
+8. * = zero or more
+9. ? = one or zero times
+10. {n} = n repetitions
+11. {i,j} = i to j times
+12. {i,} = i or more times
+13. . = any character
+14. \ = escapes any character
+15. | = logical OR
+16. () = capturing group 
+17. (?:...) = not capturing group
+18. [] = any characters in bracket
+19. - = range indicator if not last in bracket
+20. [^..] = any character not in brackets
