@@ -1,7 +1,5 @@
-# This file contains a lexer which is able to take a context free grammar and produce a linked list of tokens
-# The input is a JSON formatted CFG (See README) and the output is a linked list of tokens
+# This file contains a lexer which is able to take a text file and produce a linked list of tokens
+# The input is a text file to be lexed. The tokens will be pased into the file by the main function. 
 
-import json
-
-def lex(cfg: json):
+def lex(cfg: file):
     pass
