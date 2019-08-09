@@ -15,40 +15,21 @@ Below is the sample JSON for the context free grammar. The Language option is in
     "FactorWhiteSpace": "False",
     "Name": "MyGrammar",
     "FirstRule": "STATEMENT",
-    "Rules": [
+    "RegexTokens": [
         {
             "Name": "INTEGER",
-            "Representation": [
-                [
-                    {
-                        "Type": "REGEX",
-                        "Data": "[0-9]+"
-                    }
-                ]
-            ]
+            "Data": "[0-9]+"
         },
         {
             "Name": "FLOAT",
-            "Representation": [
-                [
-                    {
-                        "Type": "REGEX",
-                        "Data": "[0-9]+\.[0-9]*"
-                    }
-                ]
-            ]
+            "Data": "[0-9]+\.[0-9]*"
         },
         {
             "Name": "STRING",
-            "Representation": [
-                [
-                    {
-                        "Type": "REGEX",
-                        "Data": "\"(?:[^"\\]|\\.)*\""
-                    }
-                ]
-            ]
+            "Data": "\"([^"\\]|\\.)*\""
         },
+    ],
+    "Rules": [
         {
             "Name": "STATEMENT",
             "Representation": [
@@ -218,11 +199,11 @@ We will create a lexer which is able to be either white-space indiferent or take
 10. {n} = n repetitions
 11. {i,j} = i to j times
 12. {i,} = i or more times
+12. {,j} = less than or equal to j times
 13. . = any character
 14. \ = escapes any character
 15. | = logical OR
-16. () = capturing group 
-17. (?:...) = not capturing group
+16. () = group 
 18. [] = any characters in bracket
 19. - = range indicator if not last in bracket
 20. [^..] = any character not in brackets
