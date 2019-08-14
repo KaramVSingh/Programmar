@@ -15,23 +15,10 @@ Below is the sample JSON for the context free grammar. The Language option is in
     "FactorWhiteSpace": "False",
     "Name": "MyGrammar",
     "FirstRule": "STATEMENT",
-    "RegexTokens": [
-        {
-            "Name": "INTEGER",
-            "Data": "[0-9]+"
-        },
-        {
-            "Name": "FLOAT",
-            "Data": "[0-9]+\.[0-9]*"
-        },
-        {
-            "Name": "STRING",
-            "Data": "\"([^"\\]|\\.)*\""
-        },
-    ],
     "Rules": [
         {
             "Name": "STATEMENT",
+            "Type": "RULE"
             "Representation": [
                 [
                     {
@@ -207,3 +194,7 @@ We will create a lexer which is able to be either white-space indiferent or take
 18. [] = any characters in bracket
 19. - = range indicator if not last in bracket
 20. [^..] = any character not in brackets
+
+
+# for me
+we now parse regex into a cfg which is baked into the reported cfg. This provides a few things that need to be taken into account with the lexer/parser. (1) We have types [RULE, LITERAL, + RANGE, - RANGE]. This means that the lexer needs to do a few things differently. We need to lex each character. Under normal circumstances, when a un-identifiable character apears, we would stop lexing, however because the parser can contain a range, we want to lex all un-matchable characters. This will allow us to handle the matching/identify weird tokens in the parse step. (2) the OR operator in regex can lead to first set overlap. As a result, we will modify our parser to (1) identify all POSSIBLE next rules, and then try each one until one does not throw an exception. If all throw exceptions, then we will report the last one as the error exception. 
