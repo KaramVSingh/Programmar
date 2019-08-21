@@ -9,6 +9,7 @@ The application allows you to define a context free grammar (CFG) and produces a
 3. Support multiple languages but make parsing language agnostic (this includes a UTF-8 parser for C).
 
 ### What makes a CFG:
+```
 L Rule[]
  L Name
  L Type
@@ -17,6 +18,7 @@ L Rule[]
    L Reference
    L Metadata
    L Ranges[][]
+```
 
 ### What makes a CFG valid?
 TODO
@@ -50,23 +52,23 @@ In this example the whole example is a grammar, A and B are rules, "hello world"
 We will create a lexer which is able to be either white-space indiferent or take into account white-space. It will return a linked list of tokens which contain information about their match.
 
 ### Supported regular expression syntax
-1. \d = [0-9]
-2. \w = [a-zA-Z0-9_]
-3. \s = [\t\n\r ]
-4. \D = [^\d]
-5. \W = [^\w]
-6. \S = [^\s]
-7. + = one or more
-8. * = zero or more
-9. ? = one or zero times
-10. {n} = n repetitions
-11. {i,j} = i to j times
-12. {i,} = i or more times
-12. {,j} = less than or equal to j times
-13. . = any character
-14. \ = escapes any character
-15. | = logical OR
-16. () = group 
-18. [] = any characters in bracket
-19. - = range indicator if not last in bracket
-20. [^..] = any character not in brackets
+1. `\d` = `[0-9]`
+2. `\w` = `[a-zA-Z0-9_]`
+3. `\s` = `[\t\n\r ]`
+4. `\D` = `[^\d]`
+5. `\W` = `[^\w]`
+6. `\S` = `[^\s]`
+7. `+` = `one or more`
+8. `*` = `zero or more`
+9. `?` = `one or zero times`
+10. `{n}` = `n repetitions`
+11. `{i,j}` = `i to j times`
+12. `{i,}` = `i or more times`
+12. `{,j}` = `less than or equal to j times`
+13. `.` = `any character`
+14. `\` = `escapes any character`
+15. `|` = `logical OR`
+16. `()` = `group` 
+18. `[]` = `any characters in bracket`
+19. `-` = `range indicator if not last in bracket`
+20. `[^..]` = `any character not in brackets`
