@@ -1,4 +1,6 @@
-from backend.regex import Regex
+from regex import Regex
+
+Regex('Name', '[0-9]+')
 
 # returns (status_code, artifact)
 def handle(input_json):
@@ -8,9 +10,10 @@ def handle(input_json):
     escaped_rules = []
     for rule in rules:
         if rule['Type'] == 'REGEX':
-            escaped_rules += Regex(rule['Name'], rule['Is'])
+            escaped_rules += Regex(rule['Name'], rule['Is']).to_cfg()
         else:
             rule['Squash'] = False
-            escaped_rules += [rule]
+            escaped_rules.append(rule)
 
     # now we begin creating the lexer
+    print(escaped_rules)
