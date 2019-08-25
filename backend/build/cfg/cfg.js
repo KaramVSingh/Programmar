@@ -1,190 +1,106 @@
 "use strict";
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 exports.__esModule = true;
-var Tuple = /** @class */ (function () {
-    function Tuple(start, end) {
-        this.validate(start, end);
-        this.start = start;
-        this.end = end;
-    }
-    Tuple.prototype.validate = function (start, end) {
-        if (start.length === 0 || end.length === 0) {
-            throw Error('Range cannot have empty string.');
-        }
-        if (start.length !== end.length) {
-            throw Error('Range must have same length for start and end.');
-        }
-        if (start.length !== 1 && start !== end) {
-            throw Error('Range length > 1 must have same value.');
-        }
-        if (start.length === 1 && start.charCodeAt(0) > end.charCodeAt(0)) {
-            throw Error('Range must be x, y such that x <= y.');
-        }
-    };
-    Tuple.prototype.toObject = function () {
-        var object = [this.start, this.end];
-        return object;
-    };
-    return Tuple;
-}());
-var Statement = /** @class */ (function () {
-    function Statement(input) {
-        this.validate(input);
-        this.type = input['Type'];
-        if (this.type === 'RULE') {
-            this.reference = input['Reference'];
-            this.ranges = null;
-            this.metadata = null;
-        }
-        else if (this.type === 'RANGE') {
-            this.reference = null;
-            this.metadata = input['Metadata'];
-            this.ranges = [];
-            for (var i = 0; i < input['Ranges'].length; i++) {
-                var rangeArray = input['Ranges'][i];
-                if (rangeArray.length === 2) {
-                    this.ranges.push(new Tuple(rangeArray[0], rangeArray[1]));
-                }
-                else {
-                    throw Error('CFG ERROR: Range provided without start and end.');
-                }
-            }
-        }
-        else if (this.type === 'LITERAL') {
-            // We should convert it to a range
-            // Reference will contain the match value
-            this.type = 'RANGE';
-            this.reference = null;
-            this.ranges = [new Tuple(input['Reference'], input['Reference'])];
-            this.metadata = 'POSITIVE';
-        }
-    }
-    Statement.prototype.validate = function (input) {
-        if (input['Type'] === undefined) {
-            throw Error('Type must be defined for statement.');
-        }
-        if (input['Type'] !== 'RULE' && input['Type'] !== 'RANGE' && input['Type'] !== 'LITERAL') {
-            throw Error('Type must be RULE/RANGE/LITERAL.');
-        }
-        if (input['Type'] === 'RULE' && (input['Reference'] === undefined)) {
-            throw Error('Reference cannot be undefined for type RULE.');
-        }
-        if (input['Type'] === 'RANGE' && (input['Metadata'] === undefined || input['Ranges'] === undefined)) {
-            throw Error('Range and Metadata cannot be undefined for type RANGE.');
-        }
-        else if (input['Type'] === 'RANGE' && (input['Metadata'] !== 'POSITIVE' && input['Metadata'] !== 'NEGATIVE')) {
-            throw Error('Metadata must be enum of values POSITIVE/NEGATIVE.');
-        }
-        if (input['Type'] === 'LITERAL' && (input['Reference'] === undefined)) {
-            throw Error('Reference cannot be undefined for LITERAL.');
-        }
-    };
-    Statement.prototype.toObject = function () {
-        var hasRanges = this.ranges !== null;
-        var object = {
-            'Type': this.type,
-            'Reference': this.reference,
-            'Metadata': this.metadata,
-            'Ranges': (hasRanges ? [] : null)
-        };
-        if (hasRanges) {
-            for (var i = 0; i < this.ranges.length; i++) {
-                object['Ranges'].push(this.ranges[i].toObject());
-            }
-        }
-        return object;
-    };
-    return Statement;
-}());
-var Format = /** @class */ (function () {
-    function Format(input) {
-        this.statements = [];
-        for (var i = 0; i < input.length; i++) {
-            var statementInput = input[i];
-            this.statements.push(new Statement(statementInput));
-        }
-    }
-    Format.prototype.toObject = function () {
-        var object = [];
-        for (var i = 0; i < this.statements.length; i++) {
-            object.push(this.statements[i].toObject());
-        }
-        return object;
-    };
-    return Format;
-}());
-var Rule = /** @class */ (function () {
-    function Rule(input) {
-        this.validate(input);
-        this.internal = input['Internal'];
-        this.name = input['Name'];
-        this.is = [];
-        for (var i = 0; i < input['Is'].length; i++) {
-            var formatInput = input['Is'][i];
-            this.is.push(new Format(formatInput));
-        }
-    }
-    Rule.prototype.validate = function (input) {
-        if (input['Internal'] === undefined || input['Name'] === undefined || input['Is'] === undefined) {
-            throw Error('Internal, Name, and Is must be defined in a rule.');
-        }
-        if (input['Name'].length < 1 || input['Name'][0] == '_' && input['Internal'] !== true) {
-            throw Error('Namespace Error for rule.');
-        }
-    };
-    Rule.prototype.toObject = function () {
-        var object = {
-            'Internal': this.internal,
-            'Name': this.name,
-            'Is': []
-        };
-        for (var i = 0; i < this.is.length; i++) {
-            object['Is'].push(this.is[i].toObject());
-        }
-        return object;
-    };
-    return Rule;
-}());
+var input_1 = require("../input/input");
+/**
+ * A _CFG_ is different from an _Input_ in that it does not support regex rules. To create
+ * A _CFG_ from an _Input_, each regex must be converted from a rule to a list of rules. This also
+ * has a few side effects on the way _CFG_ must support literals. _CFGs_ must now support ranges instead of literals
+ * and each range must be signed (positive match or negative match).
+ */
 var Cfg = /** @class */ (function () {
-    function Cfg(input) {
-        this.validate(input);
-        this.rules = [];
-        for (var i = 0; i < input['Rules'].length; i++) {
-            this.rules.push(new Rule(input['Rules'][i]));
-        }
+    function Cfg(rules) {
+        this.rules = rules;
     }
-    Cfg.prototype.addRule = function (input) {
-        var rule = new Rule(input);
-        for (var i = 0; i < this.rules.length; i++) {
-            if (this.rules[i].name === rule.name) {
-                throw Error('Cannot have rules with same name.');
+    Cfg.fromInput = function (input) {
+        var e_1, _a;
+        var nRules = [];
+        try {
+            for (var _b = __values(input.rules), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var rule = _c.value;
+                nRules = nRules.concat(Rule.fromInput(rule));
             }
         }
-        this.rules.push(rule);
-    };
-    Cfg.prototype.removeRule = function (name) {
-        this.rules = this.rules.filter(function (rule) { return rule.name !== name; });
-    };
-    Cfg.prototype.validate = function (input) {
-        if (input['Rules'] === undefined) {
-            throw Error('Rules must be declared in CFG.');
-        }
-        var memo = {};
-        for (var i = 0; i < input['Rules'].length; i++) {
-            if (input['Rules'][i]['Name'] in memo) {
-                throw Error('Cannot have rules with same name.');
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b["return"])) _a.call(_b);
             }
-            memo[input['Rules'][i]['Name']] = true;
+            finally { if (e_1) throw e_1.error; }
         }
-    };
-    Cfg.prototype.toObject = function () {
-        var object = {
-            'Rules': []
-        };
-        for (var i = 0; i < this.rules.length; i++) {
-            object['Rules'].push(this.rules[i].toObject());
-        }
-        return object;
+        return new Cfg(nRules);
     };
     return Cfg;
 }());
 exports.Cfg = Cfg;
+/**
+ * A _Rule_ is very similar to an _InputRule_, however it cannot be a regular expression. This means it has no need for a type,
+ * it will always be a rule. We also have to keep track if the rule is generated or user defined. This will be nessesary at the parser level.
+ */
+var Rule = /** @class */ (function () {
+    function Rule(name, is, isGenerated) {
+        this.name = name;
+        this.is = is;
+        this.isGenerated = isGenerated;
+    }
+    Rule.fromInput = function (input) {
+        if (input.type === input_1.InputRuleType.RULE) {
+            var statements = [];
+            for (var i = 0; i < input.is.length; i++) {
+                var format = [];
+                for (var j = 0; j < input.is[i].length; j++) {
+                    format.push(Statement.fromInput(input.is[i][j]));
+                }
+                statements.push(format);
+            }
+            return [new Rule(input.name, statements, false)];
+        }
+        else {
+            // TODO: We have to convert a regex rule
+        }
+    };
+    return Rule;
+}());
+var StatementType;
+(function (StatementType) {
+    StatementType["RULE"] = "RULE";
+    StatementType["RANGE"] = "RANGE";
+})(StatementType || (StatementType = {}));
+/**
+ * A _Statement_ is different from an _InputStatment_ in that it does not support literals. Instead, it supports ranges that
+ * can be both positive, or negative. It implements literals with a (x,x) range
+ */
+var Statement = /** @class */ (function () {
+    function Statement(type, data) {
+        this.type = type;
+        this.data = data;
+    }
+    Statement.fromInput = function (input) {
+        if (input.type === input_1.InputStatementType.RULE) {
+            return new Statement(StatementType.RULE, input.ref);
+        }
+        else {
+            return new Statement(StatementType.RANGE, new Range(true, [[input.ref, input.ref]]));
+        }
+    };
+    return Statement;
+}());
+/**
+ * A _Range_ represents a set of possible characters. _Ranges_ can be either positive or negative.
+ */
+var Range = /** @class */ (function () {
+    function Range(isAffirmative, ranges) {
+        this.isAffirmative = isAffirmative;
+        this.ranges = ranges;
+    }
+    return Range;
+}());

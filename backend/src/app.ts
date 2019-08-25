@@ -1,6 +1,7 @@
-import { Cfg, validate } from './cfg/cfg'
+import { Input } from './input/input'
+import { Cfg } from './cfg/cfg'
 
-function handleRequest(input: Object) {
-    let cfg: Cfg = new Cfg(input)
-    validate(cfg)
+function handleRequest(input: Input) {
+    Input.validate(input)
+    const cfg = Cfg.fromInput(input)
 }

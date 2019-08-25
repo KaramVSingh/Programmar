@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
-        "outDir": "build"
+        "outDir": "build",
+        "lib": ["es6", "dom"],
+        "downlevelIteration": true
     }
 }

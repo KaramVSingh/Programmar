@@ -2,7 +2,7 @@
 exports.__esModule = true;
 function assert(expression) {
     if (!expression) {
-        throw Error('Expression does not evaluate to true.');
+        throw 'Expression does not evaluate to true.';
     }
 }
 exports.assert = assert;
@@ -13,7 +13,7 @@ function assertThrows(code) {
     catch (e) {
         return;
     }
-    throw Error('Expected exception not thrown.');
+    throw 'Expected exception not thrown.';
 }
 exports.assertThrows = assertThrows;
 assertThrows(function () {

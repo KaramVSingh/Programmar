@@ -8,7 +8,13 @@ The application allows you to define a context free grammar (CFG) and produces a
 2. No Regular expresssions (REGEX will be baked into CFG).
 3. Support multiple languages but make parsing language agnostic (this includes a UTF-8 parser for C).
 
-### What makes a CFG:
+### Vocabulary
+- Grammar: Each grammar is a set of rules which define its structure
+- Rule: Rules are a set of options which which define a syntax (A => hello | world) where A is the rule and hello, world are the options
+- Options: Options are each variant of syntax for a rule. They are defined by a list of tokens
+- Token: Tokens are the most fine grained aspect of a grammar.
+
+### What makes an Input:
 ```
 L Rule[]
  L Name
@@ -16,40 +22,22 @@ L Rule[]
   L Is[][]
    L Type
    L Reference
-   L Metadata
-   L Ranges[][]
 ```
 
-### What makes a CFG valid?
-TODO
-  
-### Log:
-#### 8/19/2019
-Started re-evaluation of programmar to fit new goals. Switched to TypeScript for language base. Implemented a simple CFG class that utilizes type definitions. This should prevent confusion with the structure of the CFG in the future.
-
-#### 8/21/2019
-Finished basic implementation of a CFG class. added unit tests for the CFG class. Adding an app.ts class. Created a validate cfg function (needs to be implemented).
-
-## Regex Validation
-In addition to validating the CFG, the Json is also only valid if every RULE referenced exists. Also, all tokens listed must be valid regular expressions. This means that if a user wants to match an open bracket ([), the regular expression must be /[. This can be handled in the front end.
-
-## CFG special case rules
+### CFG special case rules
 1. Identical First Sets: This occurs if the first() of multiple options in the rule are identical. Normally this would cause ambiguity as to which option to choose. In this case, the best solution is to parse all identical steps until we get to a differentiating step.
 2. Overlapping First Sets: This occurs when the first() of multiple rules are not identical but do have overlapping options. This has no solutions and therefore the user must design a grammar that does not result in this. We will notify the user if they have this issue.
 3. Left Recursion: This occurs when a rule references itself as the first step for any number of options. This can be solved by introducing a new step to the grammar, however we will not do that automatically to preserve the code structure. We will notify the user if they have this issue.
-4. Loops: This occurs when a tule at some point references itself. This is allowed as long as there is at least one option that does not reference itself.
+4. Loops: This occurs when a rule at some point references itself. This is allowed as long as there is at least one option that does not reference itself.
 
-## Vocabulary
-- Grammar: Each grammar is a set of rules which define its structure
-- Rule: Rules are a set of options which which define a syntax (A => hello | world) where A is the rule and hello, world are the options
-- Options: Options are each variant of syntax for a rule. They are defined by a list of tokens
-- Token: Tokens are the most fine grained aspect of a grammar.
-
-Vocab in context: (A => hello world | foo bar) (B => Context Free | Grammar)
-In this example the whole example is a grammar, A and B are rules, "hello world", "foo bar", "Context Free", and "Grammar" are all options, and "hello", "world", "foo", "bar", "Context", "Free", and "Grammar" are tokens. 
-
-## Lexer
+### Lexer
 We will create a lexer which is able to be either white-space indiferent or take into account white-space. It will return a linked list of tokens which contain information about their match.
+
+### Parser
+TODO.
+
+### Regex Validation
+In addition to validating the CFG, the Json is also only valid if every RULE referenced exists. Also, all tokens listed must be valid regular expressions. This means that if a user wants to match an open bracket ([), the regular expression must be /[. This can be handled in the front end.
 
 ### Supported regular expression syntax
 1. `\d` = `[0-9]`

@@ -1,6 +1,6 @@
 function assert(expression: boolean) {
     if(!expression) {
-        throw Error('Expression does not evaluate to true.')
+        throw 'Expression does not evaluate to true.'
     }
 }
 
@@ -11,7 +11,7 @@ function assertThrows(code: () => void) {
         return
     }
 
-    throw Error('Expected exception not thrown.')
+    throw 'Expected exception not thrown.'
 }
 
 assertThrows(() => {
