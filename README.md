@@ -51,7 +51,6 @@ In addition to validating the CFG, the Json is also only valid if every RULE ref
 9. `?` = `one or zero times`
 10. `{n}` = `n repetitions`
 11. `{i,j}` = `i to j times`
-12. `{i,}` = `i or more times`
 12. `{,j}` = `less than or equal to j times`
 13. `.` = `any character`
 14. `\` = `escapes any character`
