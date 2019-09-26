@@ -1,15 +1,8 @@
-const fs = require('fs')
-
 // These need to be set on creation of the lexer
-const literals = ['REPLACEME']
-const ignoreWhitespace = true
+const literals = ["lexing","<=", "is"]
+const ignoreWhitespace = false
 
-class Token {
-    constructor(curr, next) {
-        this.curr = curr
-        this.next = next
-    }
-}
+const Token = require('./lexer_h')
 
 /**
  * This function will take a file and convert it into a linked list of tokens.
@@ -17,8 +10,7 @@ class Token {
  * @param {string} filename the filename to be lexed
  * @returns {Token} a linked list of tokens which correspond to the file
  */
-function lex(filename) {
-    const data = fs.readFileSync(filename, 'UTF-8')
+function lex(data) {
     const firstToken = new Token('', null)
     let index = 0
     let lastToken = firstToken
@@ -50,4 +42,11 @@ function lex(filename) {
     return firstToken.next
 }
 
-export { lex, Token }
+exports.lex = lex
+
+let token = lex('this is what im lexing <= << = This is what im lexxing')
+
+while(token !== null) {
+    console.log(token.curr)
+    token = token.next
+}

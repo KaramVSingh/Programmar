@@ -1,6 +1,6 @@
 import { handleRequest } from './app'
-import { Input, InputRuleType, InputStatementType } from '../input/input';
-import { SupportedLanguages } from '../langs/language';
+import { Input, InputRuleType, InputStatementType } from '../input/input'
+import { SupportedLanguages } from '../langs/translatorUtils'
 
 handleRequest(new Input({
     'rules': [
@@ -18,11 +18,12 @@ handleRequest(new Input({
         {
             'name': 'number',
             'type': InputRuleType.REGEX,
-            'is': '[0-9]+'
+            'is': '<=[0-9]+'
         }
     ]
 }), {
     'ignoreWhitespace': false,
     'language': SupportedLanguages.JAVASCRIPT,
-    'name': 'testlang'
+    'name': 'testlang',
+    'first': 'sampleRule'
 })

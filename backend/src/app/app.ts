@@ -1,12 +1,15 @@
 import { Input } from '../input/input'
-import { Cfg, gatherLiterals } from '../cfg/cfg'
-import { Language, SupportedLanguages, getLang } from '../langs/language'
+import { Cfg } from '../cfg/cfg'
+import { SupportedLanguages, getTranslator } from './../langs/translatorUtils'
+import { createParser, createLexer } from './../langs/files'
+import { GrandLanguageTranslator } from '../langs/translator'
 import fs = require('fs')
 
-interface metadata {
+interface Metadata {
     language: SupportedLanguages,
     name: string
-    ignoreWhitespace: boolean
+    ignoreWhitespace: boolean,
+    first: string
 }
 
 /**
@@ -14,22 +17,30 @@ interface metadata {
  * @param input This is the input passed in from the front-end
  * @param metadata This contains some metadata about the requests
  */
-function handleRequest(input: Input, metadata: metadata) {
+function handleRequest(input: Input, metadata: Metadata) {
     Input.validate(input)
     const cfg = Cfg.fromInput(input)
-    validateRequest(metadata)
+    validateRequest(input, metadata)
 
-    const langHandle: Language = getLang(metadata.language)
     const id: string = generateId()
-
-    fs.mkdirSync(`environments/${id}`)
-    const literals: string[] = gatherLiterals(cfg)
-    langHandle.createLexer(id, literals, metadata.ignoreWhitespace)
+    createFiles(id, cfg, metadata)
 }
 
-function validateRequest(metadata: metadata) {
+function createFiles(id: string, cfg: Cfg, metadata: Metadata) {
+    const translator: GrandLanguageTranslator = getTranslator(metadata.language)
+
+    fs.mkdirSync(`environments/${id}`)
+    createLexer(id, metadata, cfg, translator)
+    createParser(id, metadata, cfg, translator)
+}
+
+function validateRequest(input: Input, metadata: Metadata) {
     if(metadata.name.includes('.') || metadata.name.includes('/')) {
         throw 'Illegal Argument: Parser name cannot contain . or /.'
+    }
+
+    if(!input.rules.some((rule) => rule.name === metadata.first)) {
+        throw `Illegal Argument: ${metadata.first} is not present in the context free grammar.`
     }
 }
 
@@ -44,4 +55,4 @@ function generateId(): string {
     return result;
 }
 
-export { handleRequest }
+export { handleRequest, Metadata }

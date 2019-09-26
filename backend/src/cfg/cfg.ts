@@ -110,7 +110,7 @@ function gatherLiterals(cfg: Cfg): string[] {
         const flat: Statement[] = [].concat(...(rule.is))
         for(let statement of flat) {
             if(statement.type === StatementType.RANGE) {
-                if((statement.data as Range).ranges.length === 1 && (statement.data as Range).ranges[0][0] === (statement.data as Range).ranges[0][1]) {
+                if((statement.data as Range).ranges.length === 1 && (statement.data as Range).ranges[0][0] === (statement.data as Range).ranges[0][1] && (statement.data as Range).ranges[0][0].length > 1) {
                     literals.push((statement.data as Range).ranges[0][0])
                 }
             }

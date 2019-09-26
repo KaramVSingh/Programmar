@@ -144,7 +144,7 @@ function gatherLiterals(cfg) {
                 for (var flat_1 = (e_3 = void 0, __values(flat)), flat_1_1 = flat_1.next(); !flat_1_1.done; flat_1_1 = flat_1.next()) {
                     var statement = flat_1_1.value;
                     if (statement.type === StatementType.RANGE) {
-                        if (statement.data.ranges.length === 1 && statement.data.ranges[0][0] === statement.data.ranges[0][1]) {
+                        if (statement.data.ranges.length === 1 && statement.data.ranges[0][0] === statement.data.ranges[0][1] && statement.data.ranges[0][0].length > 1) {
                             literals.push(statement.data.ranges[0][0]);
                         }
                     }

@@ -2,7 +2,7 @@
 exports.__esModule = true;
 var app_1 = require("./app");
 var input_1 = require("../input/input");
-var language_1 = require("../langs/language");
+var translatorUtils_1 = require("../langs/translatorUtils");
 app_1.handleRequest(new input_1.Input({
     'rules': [
         {
@@ -19,11 +19,12 @@ app_1.handleRequest(new input_1.Input({
         {
             'name': 'number',
             'type': input_1.InputRuleType.REGEX,
-            'is': '[0-9]+'
+            'is': '<=[0-9]+'
         }
     ]
 }), {
     'ignoreWhitespace': false,
-    'language': language_1.SupportedLanguages.JAVASCRIPT,
-    'name': 'testlang'
+    'language': translatorUtils_1.SupportedLanguages.JAVASCRIPT,
+    'name': 'testlang',
+    'first': 'sampleRule'
 });
