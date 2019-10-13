@@ -15,13 +15,13 @@ var Javascript = /** @class */ (function () {
         return this.makeExport([new translator_1.TypedVariable(null, 'lex')]);
     };
     Javascript.prototype.parserHeader = function (cfg) {
-        return null;
+        return new translator_1.Line('');
     };
     Javascript.prototype.preParser = function () {
-        return null;
+        return new translator_1.Line('');
     };
     Javascript.prototype.postParser = function () {
-        return null;
+        return this.makeExport([new translator_1.TypedVariable(null, 'parse')]);
     };
     Javascript.prototype.fileExtention = function (isHeader) {
         return 'js';
@@ -83,6 +83,8 @@ var Javascript = /** @class */ (function () {
                 return '<';
             case translator_1.ConditionalOperator.GREATER:
                 return '>';
+            case translator_1.ConditionalOperator.GREATER_OR_EQUALS:
+                return '>=';
             case translator_1.ConditionalOperator.LESS_OR_EQUAL:
                 return '<=';
             default:
@@ -102,20 +104,25 @@ var Javascript = /** @class */ (function () {
                 throw 'Internal Error: Unimplemented.';
         }
     };
-    Javascript.prototype.makeTree = function (tree) {
-        if (tree.join === null) {
-            return "(" + this.makeCondition(tree.child) + ")";
+    Javascript.prototype.makeIf = function (conditions, join, body, alternative) {
+        var gates = [];
+        for (var i = 0; i < conditions.length; i++) {
+            gates.push(this.makeCondition(conditions[i]));
+        }
+        var line = new translator_1.Line('');
+        if (gates.length === 1) {
+            line.add(new translator_1.Line("if(" + gates[0] + ") {"));
         }
         else {
-            return "(" + this.makeTree(tree.child[0]) + " " + this.makeJoin(tree.join) + " " + this.makeTree(tree.child[1]) + ")";
+            var enclosed = gates.map(function (value) { return "(" + value + ")"; });
+            var spacedJoin = " " + this.makeJoin(join) + " ";
+            line.add(new translator_1.Line("if(" + enclosed.join(spacedJoin) + ") {"));
         }
-    };
-    Javascript.prototype.makeIf = function (tree, body, alternative) {
-        var line = new translator_1.Line("if" + this.makeTree(tree) + " {").add(body.tabUp());
+        line.add(body.tabUp());
         if (alternative !== null) {
             line.add(new translator_1.Line('} else {')).add(alternative.tabUp());
         }
-        return line.add(new translator_1.Line('}'));
+        return line.add(new translator_1.Line('}')).next;
     };
     Javascript.prototype.makeGetProperty = function (variable, property) {
         return variable + "." + property;
@@ -138,11 +145,14 @@ var Javascript = /** @class */ (function () {
     Javascript.prototype.makeStringLength = function (variable) {
         return variable + ".length";
     };
-    Javascript.prototype.makeWhile = function (tree, body) {
-        return new translator_1.Line("while" + this.makeTree(tree) + " {").add(body.tabUp()).add(new translator_1.Line('}'));
+    Javascript.prototype.makeWhile = function (condition, body) {
+        return new translator_1.Line("while(" + this.makeCondition(condition) + ") {").add(body.tabUp()).add(new translator_1.Line('}'));
     };
     Javascript.prototype.makeAddition = function (left, right) {
         return left + " + " + right;
+    };
+    Javascript.prototype.makeSubtraction = function (left, right) {
+        return left + " - " + right;
     };
     Javascript.prototype.makeBreak = function () {
         return new translator_1.Line('break');
@@ -155,6 +165,34 @@ var Javascript = /** @class */ (function () {
     };
     Javascript.prototype.makeStringFromChar = function (variable) {
         return variable;
+    };
+    Javascript.prototype.makeStringTemplate = function (template, variables) {
+        var variableIndex = 0;
+        var newTemplate = '`';
+        for (var i = 0; i < template.length; i++) {
+            if (template[i] === '#') {
+                newTemplate += '${' + variables[variableIndex++].name + '}';
+            }
+            else {
+                newTemplate += template[i];
+            }
+        }
+        return newTemplate + '`';
+    };
+    Javascript.prototype.makeExit = function (message) {
+        return new translator_1.Line("throw " + message);
+    };
+    Javascript.prototype.makeEmptyList = function (type) {
+        return '[]';
+    };
+    Javascript.prototype.makeEmptyString = function () {
+        return '""';
+    };
+    Javascript.prototype.makeGetCharValue = function (char) {
+        return char + ".charCodeAt(0)";
+    };
+    Javascript.prototype.makeAddToArray = function (arr, index) {
+        return new translator_1.Line(arr + ".push(" + index + ")");
     };
     return Javascript;
 }());

@@ -43,7 +43,8 @@ enum Type {
     AST,
     INT,
     CHAR,
-    BOOLEAN
+    BOOLEAN,
+    PAIR
 }
 
 class DecoratedType {
@@ -70,6 +71,7 @@ enum ConditionalOperator {
     LESS,
     LESS_OR_EQUAL,
     GREATER,
+    GREATER_OR_EQUALS,
     EQUALS,
     NOT_EQUALS
 }
@@ -91,16 +93,6 @@ class Condition {
 enum Join {
     AND,
     OR
-}
-
-class Tree {
-    child: Condition | Tree[]
-    join: Join
-
-    constructor(child: Condition | Tree[], join: Join) {
-        this.child = child
-        this.join = join
-    }
 }
 
 interface GrandLanguageTranslator {
@@ -224,19 +216,13 @@ interface GrandLanguageTranslator {
     makeJoin: (join: Join) => string
 
     /**
-     * This function is responsible for defining what a tree of conditionals look like
-     * It _WILL_ include the parentheses
-     * @param tree this is the tree
-     */
-    makeTree: (tree: Tree) => string
-
-    /**
      * This function is responsible for defining what an if statement looks like
-     * @param tree this is the tree of conditionals
+     * @param conditions the conditionals
+     * @param join what will join the conditions
      * @param body this is the body of the if
      * @param alternative this is the ele case of the if
      */
-    makeIf: (tree: Tree, body: Line, alternative: Line) => Line
+    makeIf: (conditions: Condition[], join: Join, body: Line, alternative: Line) => Line
 
     /**
      * This function is responsible for defining how you get a property from a struct
@@ -284,10 +270,10 @@ interface GrandLanguageTranslator {
 
     /**
      * This function defines a while (see if)
-     * @param tree
+     * @param condition
      * @param body
      */
-    makeWhile: (tree: Tree, body: Line) => Line
+    makeWhile: (condition: Condition, body: Line) => Line
 
     /**
      * This function defines addition
@@ -295,6 +281,13 @@ interface GrandLanguageTranslator {
      * @param right
      */
     makeAddition: (left: string, right: string) => string
+
+    /**
+     * this function defines subtraction
+     * @param left
+     * @param right
+     */
+    makeSubtraction: (left: string, right: string) => string
 
     /**
      * This function just makes break
@@ -318,6 +311,42 @@ interface GrandLanguageTranslator {
      * @param variable
      */
     makeStringFromChar: (variable: string) => string
+
+    /**
+     * Make string template. string will have #'s where variables will be
+     * @param template
+     * @param variables
+     */
+    makeStringTemplate: (template: string, variables: TypedVariable[]) => string
+
+    /**
+     * Make exit from program
+     * @param failureMessage
+     */
+    makeExit: (message: string) => Line
+
+    /**
+     * Make an empty mutable list
+     * @param type -- The type in the list
+     */
+    makeEmptyList: (type: DecoratedType) => string
+
+    /**
+     * Make an empty and mutable string
+     */
+    makeEmptyString: () => string
+
+    /**
+     * Make get char numerical value
+     */
+    makeGetCharValue: (char: string) => string
+
+    /**
+     * Make add to array
+     * @param arr
+     * @param index
+     */
+    makeAddToArray: (arr: string, index: string) => Line
 }
 
-export { Line, TypedVariable, GrandLanguageTranslator, Type, Condition, Tree, Join, ConditionalOperator, DecoratedType }
+export { Line, TypedVariable, GrandLanguageTranslator, Type, Condition, Join, ConditionalOperator, DecoratedType }

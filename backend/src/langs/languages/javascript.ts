@@ -1,4 +1,4 @@
-import { GrandLanguageTranslator, TypedVariable, Line, Condition, Tree, Join, ConditionalOperator, Type } from '../translator'
+import { GrandLanguageTranslator, TypedVariable, Line, Condition, Join, ConditionalOperator, Type, DecoratedType } from '../translator'
 import { Cfg } from '../../cfg/cfg'
 
 class Javascript implements GrandLanguageTranslator {
@@ -17,15 +17,15 @@ class Javascript implements GrandLanguageTranslator {
     }
 
     parserHeader(cfg: Cfg): Line {
-        return null
+        return new Line('')
     }
 
     preParser(): Line {
-        return null
+        return new Line('')
     }
 
     postParser(): Line {
-        return null
+        return this.makeExport([ new TypedVariable(null, 'parse') ])
     }
 
     fileExtention(isHeader: boolean): string {
@@ -107,6 +107,8 @@ class Javascript implements GrandLanguageTranslator {
             return '<'
             case ConditionalOperator.GREATER:
             return '>'
+            case ConditionalOperator.GREATER_OR_EQUALS:
+            return '>='
             case ConditionalOperator.LESS_OR_EQUAL:
             return '<='
             default:
@@ -129,24 +131,28 @@ class Javascript implements GrandLanguageTranslator {
         }
     }
 
-    makeTree(tree: Tree): string {
-        if(tree.join === null) {
-            return `(${this.makeCondition(tree.child as Condition)})`
-        } else {
-            return `(${this.makeTree(tree.child[0])} ${this.makeJoin(tree.join)} ${this.makeTree(tree.child[1])})`
+    makeIf(conditions: Condition[], join: Join, body: Line, alternative: Line): Line {
+        let gates: string[] = []
+        for(let i = 0; i < conditions.length; i++) {
+            gates.push(this.makeCondition(conditions[i]))
         }
-    }
 
-    makeIf(tree: Tree, body: Line, alternative: Line): Line {
-        const line: Line = new Line(`if${this.makeTree(tree)} {`).add(
-            body.tabUp()
-        )
+        const line: Line = new Line('')
+        if(gates.length === 1) {
+            line.add(new Line(`if(${gates[0]}) {`))
+        } else {
+            let enclosed: string[] = gates.map((value: string) => `(${value})`)
+            let spacedJoin: string = ` ${this.makeJoin(join)} `
+            line.add(new Line(`if(${enclosed.join(spacedJoin)}) {`))
+        }
+
+        line.add(body.tabUp())
 
         if(alternative !== null) {
             line.add(new Line('} else {')).add(alternative.tabUp())
         }
 
-        return line.add(new Line('}'))
+        return line.add(new Line('}')).next
     }
 
     makeGetProperty(variable: string, property: string): string {
@@ -177,14 +183,18 @@ class Javascript implements GrandLanguageTranslator {
         return `${variable}.length`
     }
 
-    makeWhile(tree: Tree, body: Line): Line {
-        return new Line(`while${this.makeTree(tree)} {`).add(
+    makeWhile(condition: Condition, body: Line): Line {
+        return new Line(`while(${this.makeCondition(condition)}) {`).add(
             body.tabUp()
         ).add(new Line('}'))
     }
 
     makeAddition(left: string, right: string): string {
         return `${left} + ${right}`
+    }
+
+    makeSubtraction(left: string, right: string): string {
+        return `${left} - ${right}`
     }
 
     makeBreak(): Line {
@@ -201,6 +211,41 @@ class Javascript implements GrandLanguageTranslator {
 
     makeStringFromChar(variable: string): string {
         return variable
+    }
+
+    makeStringTemplate(template: string, variables: TypedVariable[]): string {
+        let variableIndex = 0
+        let newTemplate = '`'
+
+        for(let i = 0; i < template.length; i++) {
+            if(template[i] === '#') {
+                newTemplate += '${' + variables[variableIndex++].name + '}'
+            } else {
+                newTemplate += template[i]
+            }
+        }
+
+        return newTemplate + '`'
+    }
+
+    makeExit(message: string): Line {
+        return new Line(`throw ${message}`)
+    }
+
+    makeEmptyList(type: DecoratedType): string {
+        return '[]'
+    }
+
+    makeEmptyString(): string {
+        return '""'
+    }
+
+    makeGetCharValue(char: string): string {
+        return `${char}.charCodeAt(0)`
+    }
+
+    makeAddToArray(arr: string, index: string): Line {
+        return new Line(`${arr}.push(${index})`)
     }
 }
 

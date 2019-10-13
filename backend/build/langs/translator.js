@@ -39,6 +39,7 @@ var Type;
     Type[Type["INT"] = 2] = "INT";
     Type[Type["CHAR"] = 3] = "CHAR";
     Type[Type["BOOLEAN"] = 4] = "BOOLEAN";
+    Type[Type["PAIR"] = 5] = "PAIR";
 })(Type || (Type = {}));
 exports.Type = Type;
 var DecoratedType = /** @class */ (function () {
@@ -62,8 +63,9 @@ var ConditionalOperator;
     ConditionalOperator[ConditionalOperator["LESS"] = 0] = "LESS";
     ConditionalOperator[ConditionalOperator["LESS_OR_EQUAL"] = 1] = "LESS_OR_EQUAL";
     ConditionalOperator[ConditionalOperator["GREATER"] = 2] = "GREATER";
-    ConditionalOperator[ConditionalOperator["EQUALS"] = 3] = "EQUALS";
-    ConditionalOperator[ConditionalOperator["NOT_EQUALS"] = 4] = "NOT_EQUALS";
+    ConditionalOperator[ConditionalOperator["GREATER_OR_EQUALS"] = 3] = "GREATER_OR_EQUALS";
+    ConditionalOperator[ConditionalOperator["EQUALS"] = 4] = "EQUALS";
+    ConditionalOperator[ConditionalOperator["NOT_EQUALS"] = 5] = "NOT_EQUALS";
 })(ConditionalOperator || (ConditionalOperator = {}));
 exports.ConditionalOperator = ConditionalOperator;
 var Condition = /** @class */ (function () {
@@ -82,11 +84,3 @@ var Join;
     Join[Join["OR"] = 1] = "OR";
 })(Join || (Join = {}));
 exports.Join = Join;
-var Tree = /** @class */ (function () {
-    function Tree(child, join) {
-        this.child = child;
-        this.join = join;
-    }
-    return Tree;
-}());
-exports.Tree = Tree;

@@ -19,7 +19,7 @@ app_1.handleRequest(new input_1.Input({
         {
             'name': 'number',
             'type': input_1.InputRuleType.REGEX,
-            'is': '<=[0-9]+'
+            'is': '[0-9]+'
         }
     ]
 }), {
