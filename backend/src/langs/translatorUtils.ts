@@ -2,7 +2,7 @@ import { Line, GrandLanguageTranslator } from './translator'
 import { Javascript } from './languages/javascript'
 
 enum SupportedLanguages {
-    JAVASCRIPT
+    JAVASCRIPT = 'JAVASCRIPT'
 }
 
 function getTranslator(lang: SupportedLanguages): GrandLanguageTranslator {
