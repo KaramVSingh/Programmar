@@ -6,6 +6,25 @@ var assert_1 = require("../testutils/assert");
  * This file contains all tests for the input class as defined in input.ts
  * This file also contains all tests for dependencies of the input class.
  */
+testCheckInputRuleType();
+function testCheckInputRuleType() {
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': 'RULE', 'is': 'rule' }));
+    assert_1.assert(input_1.InputRule.isInputRule({}) === false);
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': {}, 'type': 'RULE', 'is': 'rule' }) === false);
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': {}, 'is': 'rule' }) === false);
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': 'NOT A RULE', 'is': 'rule' }) === false);
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': 'RULE', 'is': {} }) === false);
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': 'RULE', 'is': [] }));
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': 'RULE', 'is': [[]] }));
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': 'RULE', 'is': [[{}]] }) === false);
+    assert_1.assert(input_1.InputRule.isInputRule({ 'name': 'hello', 'type': 'RULE', 'is': [[{ 'type': 'LITERAL', 'ref': 'hello' }]] }));
+}
+testCheckInputType();
+function testCheckInputType() {
+    assert_1.assert(input_1.Input.isInput({ 'rules': [] }));
+    assert_1.assert(input_1.Input.isInput({}) === false);
+    assert_1.assert(input_1.Input.isInput({ 'rules': {} }) === false);
+}
 testInputWorks();
 function testInputWorks() {
     var inputEmpty = new input_1.Input({

@@ -6,6 +6,24 @@ class Input {
     }
 
     /**
+     * This function checks that an input is a valid Input
+     * @param input a javascript any object
+     */
+    static isInput(input: any): input is Input {
+        if(Array.isArray(input.rules)) {
+            for(let i = 0; i < input.rules.length; i++) {
+                if(!InputRule.isInputRule(input.rules[i])) {
+                    return false
+                }
+            }
+
+            return true
+        } else {
+            return false
+        }
+    }
+
+    /**
      * Things to validate:
      * 1. Rules reference existing rules (no bad names)
      * 2. No repeat names
@@ -86,6 +104,33 @@ class InputRule {
         this.is = input.is
     }
 
+    static isInputRule(input: any): input is InputRule {
+        if(typeof input.name === 'string') {
+            if(typeof input.type === 'string' && Object.values(InputRuleType).includes(input.type)) {
+                if(typeof input.is === 'string') {
+                    return true
+                } else if(Array.isArray(input.is)) {
+                    if(input.is.length === 0) { return true }
+                    for(let i = 0; i < input.is.length; i++) {
+                        if(Array.isArray(input.is[i])) {
+                            for(let j = 0; j < input.is[i].length; j++) {
+                                if(!InputStatement.isInputStatement(input.is[i][j])) {
+                                    return false
+                                }
+                            }
+
+                            return true
+                        } else {
+                            return false
+                        }
+                    }
+                }
+            }
+        }
+
+        return false
+    }
+
     /**
      * Things to validate:
      * 1. Name matches the format for an external name (must work for all languages, must not start with _)
@@ -127,6 +172,10 @@ class InputStatement {
     constructor(input: { 'type': InputStatementType, 'ref': string }) {
         this.type = input.type
         this.ref = input.ref
+    }
+
+    static isInputStatement(input: any): input is InputStatement {
+        return (typeof input.ref === 'string') && (typeof input.type === 'string' && Object.values(InputStatementType).includes(input.type))
     }
 
     /**

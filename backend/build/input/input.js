@@ -35,6 +35,23 @@ var Input = /** @class */ (function () {
         this.rules = input.rules;
     }
     /**
+     * This function checks that an input is a valid Input
+     * @param input a javascript any object
+     */
+    Input.isInput = function (input) {
+        if (Array.isArray(input.rules)) {
+            for (var i = 0; i < input.rules.length; i++) {
+                if (!InputRule.isInputRule(input.rules[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    };
+    /**
      * Things to validate:
      * 1. Rules reference existing rules (no bad names)
      * 2. No repeat names
@@ -132,6 +149,37 @@ var InputRule = /** @class */ (function () {
         this.type = input.type;
         this.is = input.is;
     }
+    InputRule.isInputRule = function (input) {
+        if (typeof input.name === 'string') {
+            if (typeof input.type === 'string' && Object.values(InputRuleType).includes(input.type)) {
+                if (typeof input.is === 'string') {
+                    return true;
+                }
+                else if (Array.isArray(input.is)) {
+                    if (input.is.length === 0) {
+                        return true;
+                    }
+                    for (var i = 0; i < input.is.length; i++) {
+                        if (Array.isArray(input.is[i])) {
+                            console.log(input.is[i]);
+                            console.log(input.is[i].length);
+                            console.log();
+                            for (var j = 0; j < input.is[i].length; j++) {
+                                if (!InputStatement.isInputStatement(input.is[i][j])) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    };
     /**
      * Things to validate:
      * 1. Name matches the format for an external name (must work for all languages, must not start with _)
@@ -171,6 +219,9 @@ var InputStatement = /** @class */ (function () {
         this.type = input.type;
         this.ref = input.ref;
     }
+    InputStatement.isInputStatement = function (input) {
+        return (typeof input.ref === 'string') && (typeof input.type === 'string' && Object.values(InputStatementType).includes(input.type));
+    };
     /**
      * Things to validate:
      * 1. Nothing

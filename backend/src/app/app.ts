@@ -1,37 +1,103 @@
 import { Input } from '../input/input'
 import { Cfg } from '../cfg/cfg'
 import { SupportedLanguages, getTranslator } from './../langs/translatorUtils'
-import { createParser, createLexer } from './../langs/files'
+import { lexerHeader, lexerSrc, parserHeader, parserSrc } from './../langs/files'
 import { GrandLanguageTranslator } from '../langs/translator'
-import fs = require('fs')
 
-interface Metadata {
-    language: SupportedLanguages,
+class Metadata {
+    language: SupportedLanguages
     name: string
-    ignoreWhitespace: boolean,
+    ignoreWhitespace: boolean
     first: string
+
+    static isMetadata(input: any): input is Metadata {
+        return (typeof input.language === 'string' && Object.values(SupportedLanguages).includes(input.language))
+            && (typeof input.name === 'string')
+            && (typeof input.ignoreWhitespace === 'boolean')
+            && (typeof input.first === 'string')
+    }
+}
+
+class Request {
+    metadata: Metadata
+    input: Input
+
+    static isRequest(input: any): input is Request {
+        return (input.metadata && Metadata.isMetadata(input.metadata))
+            && (input.input && Input.isInput(input.input))
+    }
+}
+
+class Files {
+    header: string
+    source: string
+
+    constructor(header: string, source: string) {
+        this.header = header
+        this.source = source
+    }
+}
+
+class Result {
+    lexer: Files
+    parser: Files
+
+    constructor(lexer: Files, parser: Files) {
+        this.lexer = lexer
+        this.parser = parser
+    }
 }
 
 /**
- * This function is the entrypoint to the backend's create parser functionality
+ * This function is the entrypoint to the backend
+ * @param event This is the lambda event
+ */
+const entrypoint = async (event: any) => {
+    if(Request.isRequest(event)) {
+        try {
+            return {
+                statusCode: 200,
+                body: handleRequest(event.input, event.metadata)
+            }
+        } catch(e) {
+            return {
+                statusCode: 400,
+                body: { error: e }
+            }
+        }
+    } else {
+        return {
+            statusCode: 400,
+            body: { error: 'Illegal Argument: Request must contain input and metadata.' }
+        }
+    }
+}
+
+/**
+ * This function is the typescript entrypoint to the backend's create parser functionality
  * @param input This is the input passed in from the front-end
  * @param metadata This contains some metadata about the requests
  */
-function handleRequest(input: Input, metadata: Metadata) {
+function handleRequest(input: Input, metadata: Metadata): Result {
     Input.validate(input)
     const cfg = Cfg.fromInput(input)
     validateRequest(input, metadata)
 
-    const id: string = generateId()
-    createFiles(id, cfg, metadata)
+    return createFiles(cfg, metadata)
 }
 
-function createFiles(id: string, cfg: Cfg, metadata: Metadata) {
+function createFiles(cfg: Cfg, metadata: Metadata): Result {
     const translator: GrandLanguageTranslator = getTranslator(metadata.language)
 
-    fs.mkdirSync(`environments/${id}`)
-    createLexer(id, metadata, cfg, translator)
-    createParser(id, metadata, cfg, translator)
+    const lexerHeaderBody: string = lexerHeader(translator).toString()
+    const lexerSrcBody: string = lexerSrc(metadata, cfg, translator).toString()
+    const lexer = new Files(lexerHeaderBody, lexerSrcBody)
+
+    const parserHeaderBody: string = parserHeader(translator, cfg).toString()
+    const parserSrcBody: string = parserSrc(metadata, cfg, translator).toString()
+    const parser = new Files(parserHeaderBody, parserSrcBody)
+
+    return new Result(lexer, parser)
 }
 
 function validateRequest(input: Input, metadata: Metadata) {
@@ -44,15 +110,4 @@ function validateRequest(input: Input, metadata: Metadata) {
     }
 }
 
-function generateId(): string {
-    let result = '';
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let charactersLength = characters.length;
-    for(let i = 0; i < 18; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    
-    return result;
-}
-
-export { handleRequest, Metadata }
+export { entrypoint, handleRequest, Metadata }

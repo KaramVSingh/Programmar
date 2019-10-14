@@ -1,10 +1,33 @@
-import { Input, InputRule, InputRuleType, InputStatementType } from './input'
+import { Input, InputRule, InputRuleType, InputStatementType, InputStatement } from './input'
 import { assert, assertThrows } from '../testutils/assert'
 
 /**
  * This file contains all tests for the input class as defined in input.ts
  * This file also contains all tests for dependencies of the input class.
  */
+
+testCheckInputRuleType()
+function testCheckInputRuleType() {
+    assert(InputRule.isInputRule({'name': 'hello', 'type': 'RULE', 'is': 'rule'}))
+    assert(InputRule.isInputRule({}) === false)
+    assert(InputRule.isInputRule({'name': {}, 'type': 'RULE', 'is': 'rule'}) === false)
+
+    assert(InputRule.isInputRule({'name': 'hello', 'type': {}, 'is': 'rule'}) === false)
+    assert(InputRule.isInputRule({'name': 'hello', 'type': 'NOT A RULE', 'is': 'rule'}) === false)
+
+    assert(InputRule.isInputRule({'name': 'hello', 'type': 'RULE', 'is': {}}) === false)
+    assert(InputRule.isInputRule({'name': 'hello', 'type': 'RULE', 'is': []}))
+    assert(InputRule.isInputRule({'name': 'hello', 'type': 'RULE', 'is': [[]]}))
+    assert(InputRule.isInputRule({'name': 'hello', 'type': 'RULE', 'is': [[{}]]}) === false)
+    assert(InputRule.isInputRule({'name': 'hello', 'type': 'RULE', 'is': [[{'type': 'LITERAL', 'ref': 'hello'}]]}))
+}
+
+testCheckInputType()
+function testCheckInputType() {
+    assert(Input.isInput({'rules': []}))
+    assert(Input.isInput({}) === false)
+    assert(Input.isInput({'rules': {}}) === false)
+}
 
 testInputWorks()
 function testInputWorks() {

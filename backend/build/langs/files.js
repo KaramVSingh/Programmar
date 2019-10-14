@@ -2,7 +2,6 @@
 exports.__esModule = true;
 var cfg_1 = require("../cfg/cfg");
 var translator_1 = require("./translator");
-var fs = require("fs");
 var TOKEN_OBJECT = new translator_1.DecoratedType(translator_1.Type.TOKEN, 1);
 var STRING_ARRAY = new translator_1.DecoratedType(translator_1.Type.CHAR, 2);
 var STRING = new translator_1.DecoratedType(translator_1.Type.CHAR, 1);
@@ -15,14 +14,17 @@ var PAIR = new translator_1.DecoratedType(translator_1.Type.PAIR, 1);
 function lexerHeader(translator) {
     return translator.lexerHeader();
 }
+exports.lexerHeader = lexerHeader;
 function lexerSrc(metadata, cfg, translator) {
     var literals = cfg_1.gatherLiterals(cfg);
     var whitespace = ['" "', '"\\t"', '"\\r"', '"\\n"'];
     return translator.preLexer().add(new translator_1.Line('')).add(translator.makeVariableDeclaration(new translator_1.TypedVariable(STRING_ARRAY, 'literals'), translator.makeStaticArray(literals.map(function (value) { return "\"" + value + "\""; })))).add(translator.makeVariableDeclaration(new translator_1.TypedVariable(STRING_ARRAY, 'whitespace'), translator.makeStaticArray(whitespace))).add(translator.makeVariableDeclaration(new translator_1.TypedVariable(BOOLEAN, 'ignoreWhitespace'), translator.makeBoolean(metadata.ignoreWhitespace))).add(new translator_1.Line('')).add(translator.makeFunctionDeclaration(new translator_1.TypedVariable(BOOLEAN, 'matchPrefix'), [new translator_1.TypedVariable(STRING, 'prefix'), new translator_1.TypedVariable(STRING, 'str')], translator.makeIf([new translator_1.Condition(translator.makeStringLength('prefix'), translator.makeStringLength('str'), translator_1.ConditionalOperator.LESS_OR_EQUAL, INT)], null, translator.makeClassicFor(new translator_1.TypedVariable(INT, 'i'), '0', translator.makeStringLength('prefix'), translator.makeIf([new translator_1.Condition(translator.makeGetArrayAccess('prefix', 'i'), translator.makeGetArrayAccess('str', 'i'), translator_1.ConditionalOperator.NOT_EQUALS, CHAR)], null, translator.makeReturn(translator.makeBoolean(false)), null)).add(new translator_1.Line('')).add(translator.makeReturn(translator.makeBoolean(true))), translator.makeReturn(translator.makeBoolean(false))))).add(new translator_1.Line('')).add(translator.makeFunctionDeclaration(new translator_1.TypedVariable(BOOLEAN, 'equals'), [new translator_1.TypedVariable(STRING, 'a'), new translator_1.TypedVariable(STRING, 'b')], translator.makeIf([new translator_1.Condition(translator.makeStringLength('a'), translator.makeStringLength('b'), translator_1.ConditionalOperator.EQUALS, INT)], null, translator.makeReturn(translator.makeFunctionCall('matchPrefix', ['a', 'b'])), translator.makeReturn(translator.makeBoolean(false))))).add(new translator_1.Line('')).add(translator.makeFunctionDeclaration(new translator_1.TypedVariable(BOOLEAN, 'contains'), [new translator_1.TypedVariable(STRING, 'tst'), new translator_1.TypedVariable(STRING_ARRAY, 'arr')], translator.makeClassicFor(new translator_1.TypedVariable(INT, 'i'), '0', translator.makeGetProperty('arr', 'length'), translator.makeIf([new translator_1.Condition(translator.makeFunctionCall('equals', ['tst', translator.makeGetArrayAccess('arr', 'i')]), translator.makeBoolean(true), translator_1.ConditionalOperator.EQUALS, BOOLEAN)], null, translator.makeReturn(translator.makeBoolean(true)), null)).add(new translator_1.Line('')).add(translator.makeReturn(translator.makeBoolean(false))))).add(new translator_1.Line('')).add(translator.makeFunctionDeclaration(new translator_1.TypedVariable(TOKEN_OBJECT, 'lex'), [new translator_1.TypedVariable(STRING, 'str')], translator.makeVariableDeclaration(new translator_1.TypedVariable(TOKEN_OBJECT, 'firstToken'), translator.makeObject(translator_1.Type.TOKEN)).add(translator.makeSetVariable(translator.makeGetProperty('firstToken', 'val'), '""')).add(translator.makeSetVariable(translator.makeGetProperty('firstToken', 'next'), translator.makeNothing())).add(new translator_1.Line('')).add(translator.makeVariableDeclaration(new translator_1.TypedVariable(INT, 'index'), '0')).add(translator.makeVariableDeclaration(new translator_1.TypedVariable(TOKEN_OBJECT, 'lastToken'), 'firstToken')).add(new translator_1.Line('')).add(translator.makeWhile(new translator_1.Condition('index', translator.makeStringLength('str'), translator_1.ConditionalOperator.LESS, INT), translator.makeVariableDeclaration(new translator_1.TypedVariable(TOKEN_OBJECT, 'newToken'), translator.makeNothing()).add(translator.makeClassicFor(new translator_1.TypedVariable(INT, 'i'), '0', translator.makeGetProperty('literals', 'length'), translator.makeVariableDeclaration(new translator_1.TypedVariable(STRING, 'literal'), translator.makeGetArrayAccess('literals', 'i')).add(new translator_1.Line('')).add(translator.makeIf([new translator_1.Condition(translator.makeFunctionCall('matchPrefix', ['literal', translator.makeStringStartingAt('str', 'index')]), translator.makeBoolean(true), translator_1.ConditionalOperator.EQUALS, BOOLEAN)], null, translator.makeSetVariable('newToken', translator.makeObject(translator_1.Type.TOKEN)).add(translator.makeSetVariable(translator.makeGetProperty('newToken', 'val'), 'literal')).add(translator.makeSetVariable(translator.makeGetProperty('newToken', 'next'), translator.makeNothing())).add(new translator_1.Line('')).add(translator.makeSetVariable('index', translator.makeAddition('index', translator.makeStringLength('literal')))).add(translator.makeBreak()), null))).add(new translator_1.Line('')).add(translator.makeIf([new translator_1.Condition('newToken', translator.makeNothing(), translator_1.ConditionalOperator.EQUALS, TOKEN_OBJECT)], null, translator.makeIf([new translator_1.Condition('ignoreWhitespace', translator.makeBoolean(true), translator_1.ConditionalOperator.EQUALS, BOOLEAN), new translator_1.Condition(translator.makeFunctionCall('contains', [translator.makeGetArrayAccess('str', 'index'), 'whitespace']), translator.makeBoolean(true), translator_1.ConditionalOperator.EQUALS, BOOLEAN)], translator_1.Join.AND, translator.makeSetVariable('index', translator.makeAddition('index', '1')).add(translator.makeContinue()), translator.makeSetVariable('newToken', translator.makeObject(translator_1.Type.TOKEN)).add(translator.makeSetVariable(translator.makeGetProperty('newToken', 'val'), translator.makeStringFromChar(translator.makeGetArrayAccess('str', 'index')))).add(translator.makeSetVariable(translator.makeGetProperty('newToken', 'next'), translator.makeNothing())).add(translator.makeSetVariable('index', translator.makeAddition('index', '1')))), null)).add(new translator_1.Line('')).add(translator.makeSetVariable(translator.makeGetProperty('lastToken', 'next'), 'newToken')).add(translator.makeSetVariable('lastToken', translator.makeGetProperty('lastToken', 'next'))))).add(new translator_1.Line('')).add(translator.makeReturn(translator.makeGetProperty('firstToken', 'next')))))).add(new translator_1.Line('')).add(translator.postLexer());
 }
+exports.lexerSrc = lexerSrc;
 function parserHeader(translator, cfg) {
     return translator.parserHeader(cfg);
 }
+exports.parserHeader = parserHeader;
 function makeBranch(statements, ruleName, translator) {
     if (statements.length === 0) {
         return translator.makeVariableDeclaration(new translator_1.TypedVariable(AST, 'ast'), translator.makeObject(translator_1.Type.AST)).add(translator.makeSetVariable(translator.makeGetProperty('ast', 'children'), 'children')).add(translator.makeSetVariable(translator.makeGetProperty('ast', 'data'), 'data')).add(translator.makeSetVariable(translator.makeGetProperty('ast', 'type'), "\"" + ruleName + "\"")).add(translator.makeSetVariable(translator.makeGetProperty('result', 'ast'), 'ast')).add(translator.makeSetVariable(translator.makeGetProperty('result', 'token'), 'curr'));
@@ -80,17 +82,4 @@ function parserSrc(metadata, cfg, translator) {
     beforeLogic.add(translator.postParser());
     return beforeLogic;
 }
-function createLexer(id, metadata, cfg, translator) {
-    var header = lexerHeader(translator);
-    fs.writeFileSync("environments/" + id + "/lexer_h." + translator.fileExtention(true), header.toString());
-    var src = lexerSrc(metadata, cfg, translator);
-    fs.writeFileSync("environments/" + id + "/lexer." + translator.fileExtention(false), src.toString());
-}
-exports.createLexer = createLexer;
-function createParser(id, metadata, cfg, translator) {
-    var header = parserHeader(translator, cfg);
-    fs.writeFileSync("environments/" + id + "/parser_h." + translator.fileExtention(true), header.toString());
-    var src = parserSrc(metadata, cfg, translator);
-    fs.writeFileSync("environments/" + id + "/parser." + translator.fileExtention(false), src.toString());
-}
-exports.createParser = createParser;
+exports.parserSrc = parserSrc;

@@ -301,20 +301,4 @@ function parserSrc(metadata: Metadata, cfg: Cfg, translator: GrandLanguageTransl
     return beforeLogic
 }
 
-function createLexer(id: string, metadata: Metadata, cfg: Cfg, translator: GrandLanguageTranslator) {
-    const header = lexerHeader(translator)
-    fs.writeFileSync(`environments/${id}/lexer_h.${translator.fileExtention(true)}`, header.toString())
-
-    const src = lexerSrc(metadata, cfg, translator)
-    fs.writeFileSync(`environments/${id}/lexer.${translator.fileExtention(false)}`, src.toString())
-}
-
-function createParser(id: string, metadata: Metadata, cfg: Cfg, translator: GrandLanguageTranslator) {
-    const header = parserHeader(translator, cfg)
-    fs.writeFileSync(`environments/${id}/parser_h.${translator.fileExtention(true)}`, header.toString())
-
-    const src = parserSrc(metadata, cfg, translator)
-    fs.writeFileSync(`environments/${id}/parser.${translator.fileExtention(false)}`, src.toString())
-}
-
-export { createLexer, createParser }
+export { lexerHeader, lexerSrc, parserHeader, parserSrc }
