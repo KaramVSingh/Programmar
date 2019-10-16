@@ -3,7 +3,7 @@ exports.__esModule = true;
 var javascript_1 = require("./languages/javascript");
 var SupportedLanguages;
 (function (SupportedLanguages) {
-    SupportedLanguages[SupportedLanguages["JAVASCRIPT"] = 0] = "JAVASCRIPT";
+    SupportedLanguages["JAVASCRIPT"] = "JAVASCRIPT";
 })(SupportedLanguages || (SupportedLanguages = {}));
 exports.SupportedLanguages = SupportedLanguages;
 function getTranslator(lang) {

@@ -161,9 +161,6 @@ var InputRule = /** @class */ (function () {
                     }
                     for (var i = 0; i < input.is.length; i++) {
                         if (Array.isArray(input.is[i])) {
-                            console.log(input.is[i]);
-                            console.log(input.is[i].length);
-                            console.log();
                             for (var j = 0; j < input.is[i].length; j++) {
                                 if (!InputStatement.isInputStatement(input.is[i][j])) {
                                     return false;

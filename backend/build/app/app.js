@@ -40,6 +40,27 @@ var input_1 = require("../input/input");
 var cfg_1 = require("../cfg/cfg");
 var translatorUtils_1 = require("./../langs/translatorUtils");
 var files_1 = require("./../langs/files");
+var Metadata = /** @class */ (function () {
+    function Metadata() {
+    }
+    Metadata.isMetadata = function (input) {
+        return (typeof input.language === 'string' && Object.values(translatorUtils_1.SupportedLanguages).includes(input.language))
+            && (typeof input.name === 'string')
+            && (typeof input.ignoreWhitespace === 'boolean')
+            && (typeof input.first === 'string');
+    };
+    return Metadata;
+}());
+exports.Metadata = Metadata;
+var Request = /** @class */ (function () {
+    function Request() {
+    }
+    Request.isRequest = function (input) {
+        return (input.metadata && Metadata.isMetadata(input.metadata))
+            && (input.input && input_1.Input.isInput(input.input));
+    };
+    return Request;
+}());
 var Files = /** @class */ (function () {
     function Files(header, source) {
         this.header = header;
@@ -59,19 +80,26 @@ var Result = /** @class */ (function () {
  * @param event This is the lambda event
  */
 var entrypoint = function (event) { return __awaiter(_this, void 0, void 0, function () {
-    var metadata, input, result;
     return __generator(this, function (_a) {
-        metadata = event['metadata'];
-        input = event['input'];
-        if (metadata && input) {
-            result = handleRequest(new input_1.Input(input), metadata);
-            return [2 /*return*/, {
-                    statusCode: 200,
-                    body: result
-                }];
+        if (Request.isRequest(event)) {
+            try {
+                return [2 /*return*/, {
+                        statusCode: 200,
+                        body: handleRequest(event.input, event.metadata)
+                    }];
+            }
+            catch (e) {
+                return [2 /*return*/, {
+                        statusCode: 400,
+                        body: { error: e }
+                    }];
+            }
         }
         else {
-            throw 'Illegal Argument: Input must contain input and metadata.';
+            return [2 /*return*/, {
+                    statusCode: 400,
+                    body: { error: 'Illegal Argument: Request must contain input and metadata.' }
+                }];
         }
         return [2 /*return*/];
     });
