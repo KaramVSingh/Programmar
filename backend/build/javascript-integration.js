@@ -23,7 +23,7 @@ const result = app.entrypoint({
     },
     "metadata": {
         "ignoreWhitespace": false,
-        "language": 'JAVASCRIPT',
+        "language": "JAVASCRIPT",
         "name": "testlang",
         "first": "sampleRule"
     }

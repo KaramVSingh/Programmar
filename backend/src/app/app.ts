@@ -57,12 +57,16 @@ const entrypoint = async (event: any) => {
         try {
             return {
                 statusCode: 200,
-                body: handleRequest(event.input, event.metadata)
+                isBase64Encoded: false,
+                headers: {},
+                body: JSON.stringify(handleRequest(event.input, event.metadata))
             }
         } catch(e) {
             return {
                 statusCode: 400,
-                body: { error: e }
+                isBase64Encoded: false,
+                headers: {},
+                body: JSON.stringify({ error: e })
             }
         }
     } else {
