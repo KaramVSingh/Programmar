@@ -363,6 +363,39 @@
     }
 
     function checkCookie() {
+        const data = JSON.parse(getCookie("cfg"))
+        $('#name').val(data["metadata"]["name"])
+        $('#first_rule').val(data["metadata"]["first"])
+        $('#ignore_whitespace').prop("checked", data["metadata"]["ignoreWhitespace"])
+
+        data["input"]["rules"].forEach(rule => {
+            const ruleId = addRule()
+            $(`#rule_type_${ruleId}`).val(rule["type"])
+            ruleTypeChange(ruleId)
+            $(`#rule_name_${ruleId}`).val(rule["name"])
+            changeRuleName(ruleId)
+
+            if (rule["type"] == "REGEX") {
+                $(`#rule_regex_${ruleId}`).val(rule["is"])
+                updateRegex(ruleId)
+            } else {
+                rule["is"].forEach(option => {
+                    const optionId = addOption(ruleId)
+                    option.forEach(data => {
+                        if (data["type"] == "LITERAL") {
+                            const literalId = addLiteral(ruleId, optionId)
+                            $(`#literal_${ruleId}_${optionId}_${literalId}`).val(data["ref"])
+                            updateLiteral(ruleId, optionId, literalId)
+                        } else {
+                            const ruleReferenceId = addRuleReference(ruleId, optionId)
+                            $(`#reference_${ruleId}_${optionId}_${ruleReferenceId}`).val(data["ref"])
+                            updateReference(ruleId, optionId, ruleReferenceId)
+                        }
+                    })
+                })
+            }
+        })
+        
         console.log(getCookie("cfg"))
     }
 
@@ -392,6 +425,8 @@
             "type": "REGEX",
             "is": ""
         }
+
+        return ruleId
     }
 
     function ruleTypeChange(ruleId) {
@@ -418,6 +453,8 @@
         let optionId = randomId()
         $(`#options_${ruleId}`).append(OPTION(ruleId, optionId))
         rules[ruleId]["is"][optionId] = []
+
+        return optionId
     }
 
     function removeOption(ruleId, optionId) {
@@ -429,12 +466,16 @@
         let inputId = randomId()
         $(`#option_body_${ruleId}_${optionId}`).append(LITERAL(ruleId, optionId, inputId))
         rules[ruleId]["is"][optionId].push({ "_id": inputId, "type": "LITERAL", "ref": "" })
+
+        return inputId
     }
 
     function addRuleReference(ruleId, optionId) {
         let inputId = randomId()
         $(`#option_body_${ruleId}_${optionId}`).append(RULE_REFERENCE(ruleId, optionId, inputId))
         rules[ruleId]["is"][optionId].push({ "_id": inputId, "type": "RULE", "ref": "" })
+
+        return inputId
     }
 
     function changeRuleName(ruleId) {
