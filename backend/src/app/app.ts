@@ -58,14 +58,22 @@ const entrypoint = async (event: any) => {
             return {
                 statusCode: 200,
                 isBase64Encoded: false,
-                headers: {},
+                headers: {
+                    "Access-Control-Allow-Headers" : "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST"
+                },
                 body: JSON.stringify(handleRequest(event.input, event.metadata))
             }
         } catch(e) {
             return {
                 statusCode: 400,
                 isBase64Encoded: false,
-                headers: {},
+                headers: {
+                    "Access-Control-Allow-Headers" : "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST"
+                },
                 body: JSON.stringify({ error: e })
             }
         }
