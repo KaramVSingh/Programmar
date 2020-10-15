@@ -289,8 +289,8 @@
     // SUBMIT
     function callProgrammar(apiCall, callback) {
         $('#error').remove()
-        document.cookie = "cfg=" + JSON.stringify(apiCall)
-        console.log(apiCall)
+        document.cookie = ("cfg=" + btoa(JSON.stringify(apiCall)))
+        console.log(btoa(JSON.stringify(apiCall)))
 
         var xhr = new XMLHttpRequest()
         xhr.open("POST", "https://tlz4iiw0f2.execute-api.us-west-2.amazonaws.com/prod/convert")
@@ -300,7 +300,7 @@
             if (res["statusCode"] == 200) {
                 callback(res)
             } else if (res["statusCode"] == 400) {
-                $('#error_space').append($(`<div id="error" class="error">Error: ${res["body"]["error"]}</div>`))
+                $('#error_space').append($(`<div id="error" class="error">${res["body"]["error"]}</div>`))
             } else if (res["statusCode"] == 500) {
                 $('#error_space').append($(`<div id="error" class="error">Error: Internal service failure, please try again later.</div>`))
             }
@@ -363,7 +363,8 @@
     }
 
     function checkCookie() {
-        const data = JSON.parse(getCookie("cfg"))
+        console.log(getCookie("cfg"))
+        const data = JSON.parse(atob(getCookie("cfg")))
         $('#name').val(data["metadata"]["name"])
         $('#first_rule').val(data["metadata"]["first"])
         $('#ignore_whitespace').prop("checked", data["metadata"]["ignoreWhitespace"])
