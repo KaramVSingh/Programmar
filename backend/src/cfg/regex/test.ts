@@ -1,5 +1,5 @@
-import { regexToRules, prelex, Token, lex, parseRegex, toRules, parseBracket } from './regex'
-import { Rule, Statement, StatementType } from './../cfg'
+import { regexToRules, prelex, Token, lex, parseRegex, parseBracket } from './regex'
+import { Rule, StatementType, Range } from './../cfg'
 import { assert, assertThrows } from './../../testutils/assert'
 
 testPrelex()
@@ -214,4 +214,31 @@ function testParseBracket() {
 testToRules()
 function testToRules() {
     regexToRules('[a-zA-Z]+', 'myRule')
+}
+
+manualTesting()
+function manualTesting() {
+    const rules = regexToRules("[a-zA-Z]+[1]{2}", "Hello")
+    printCfg(rules)
+}
+
+function printCfg(rules: Rule[]) {
+    console.log("[\n")
+    rules.forEach(rule => { printRule(rule) })
+    console.log("\n]")
+}
+
+function printRule(rule: Rule) {
+    console.log(rule.name)
+    rule.is.forEach(isList => {
+        const is = isList.map(isVal => {
+            if (isVal.type == StatementType.RULE) {
+                return isVal.data 
+            } else {
+                const ranges = (isVal.data as Range).ranges.map(range => { return `[${range[0]}-${range[1]}]` }).join('')
+                return `${(isVal.data as Range).isAffirmative}:${ranges}`
+            }
+        }).join()
+        console.log(`    ${is}`)
+    })
 }

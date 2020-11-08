@@ -1,6 +1,7 @@
 "use strict";
 exports.__esModule = true;
 var regex_1 = require("./regex");
+var cfg_1 = require("./../cfg");
 var assert_1 = require("./../../testutils/assert");
 testPrelex();
 function testPrelex() {
@@ -187,4 +188,29 @@ function testParseBracket() {
 testToRules();
 function testToRules() {
     regex_1.regexToRules('[a-zA-Z]+', 'myRule');
+}
+manualTesting();
+function manualTesting() {
+    var rules = regex_1.regexToRules("[a-zA-Z]+[1]{2}", "Hello");
+    printCfg(rules);
+}
+function printCfg(rules) {
+    console.log("[\n");
+    rules.forEach(function (rule) { printRule(rule); });
+    console.log("\n]");
+}
+function printRule(rule) {
+    console.log(rule.name);
+    rule.is.forEach(function (isList) {
+        var is = isList.map(function (isVal) {
+            if (isVal.type == cfg_1.StatementType.RULE) {
+                return isVal.data;
+            }
+            else {
+                var ranges = isVal.data.ranges.map(function (range) { return "[" + range[0] + "-" + range[1] + "]"; }).join('');
+                return isVal.data.isAffirmative + ":" + ranges;
+            }
+        }).join();
+        console.log("    " + is);
+    });
 }

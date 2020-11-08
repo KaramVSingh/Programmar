@@ -85,12 +85,24 @@ var entrypoint = function (event) { return __awaiter(_this, void 0, void 0, func
             try {
                 return [2 /*return*/, {
                         statusCode: 200,
+                        isBase64Encoded: false,
+                        headers: {
+                            "Access-Control-Allow-Headers": "application/json",
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "OPTIONS,POST"
+                        },
                         body: handleRequest(event.input, event.metadata)
                     }];
             }
             catch (e) {
                 return [2 /*return*/, {
                         statusCode: 400,
+                        isBase64Encoded: false,
+                        headers: {
+                            "Access-Control-Allow-Headers": "application/json",
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "OPTIONS,POST"
+                        },
                         body: { error: e }
                     }];
             }

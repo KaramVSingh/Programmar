@@ -174,7 +174,7 @@ function makeBranch(statements: Statement[], ruleName: string,  translator: Gran
         }
 
         ln.add(
-            translator.makeIf(conditions, Join.AND, 
+            translator.makeIf(conditions, Join.OR, 
                 translator.makeSetVariable('curr', translator.makeFunctionCall('matchToken', ['curr', translator.makeFunctionCall('lookahead', ['curr'])])).add(
                     translator.makeSetVariable('data', translator.makeStringTemplate('##', [new TypedVariable(STRING, 'data'), new TypedVariable(STRING, translator.makeFunctionCall('lookahead', ['curr']))]))
                 ).add(new Line('')).add(makeBranch(statements.slice(1), ruleName, translator)),

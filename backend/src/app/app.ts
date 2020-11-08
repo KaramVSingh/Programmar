@@ -63,7 +63,7 @@ const entrypoint = async (event: any) => {
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "OPTIONS,POST"
                 },
-                body: JSON.stringify(handleRequest(event.input, event.metadata))
+                body: handleRequest(event.input, event.metadata)
             }
         } catch(e) {
             return {
@@ -74,7 +74,7 @@ const entrypoint = async (event: any) => {
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "OPTIONS,POST"
                 },
-                body: JSON.stringify({ error: e })
+                body: { error: e }
             }
         }
     } else {
