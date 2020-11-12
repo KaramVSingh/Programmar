@@ -1,0 +1,76 @@
+
+.root {
+    cursor: pointer;
+    background-color: transparent;
+    border: transparent;
+    border-radius: 6px;
+    outline: none;
+    padding: 8px 16px;
+}
+
+.root:hover {
+    background-color: rgba(0, 0, 0, 0.12)
+}
+
+.root.large {
+    border-radius: 6px;
+    padding: 8px 16px;
+}
+
+.root.small {
+    border-radius: 3px;
+    padding: 4px 8px;
+}
+
+.container {
+    background-color: rgb(0, 162, 255);
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    padding: 6px;
+    vertical-align: middle;
+}
+
+.container.large {
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+}
+
+.container.small {
+    width: 20px;
+    height: 20px;
+    padding: 4px;
+}
+
+.text {
+    vertical-align: middle;
+    margin-left: 16px;
+    font-size: 16px;
+}
+
+.text.large {
+    margin-left: 16px;
+    font-size: 16px;
+}
+
+.text.small {
+    margin-left: 8px;
+    font-size: 16px;
+}
+
+.plusIcon {
+    width: 24px;
+    height: 24px;
+}
+
+.plusIcon.large {
+    width: 24px;
+    height: 24px;
+}
+
+.plusIcon.small {
+    width: 12px;
+    height: 12px;
+}

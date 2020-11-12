@@ -1,0 +1,26 @@
+
+.root {
+    border: 3px solid transparent;
+    border-radius: 6px;
+    outline: none;
+}
+
+.root:hover {
+    border: 3px solid rgb(216, 216, 216);
+}
+
+.root:focus {
+    border: 3px solid rgb(138, 138, 138);
+}
+
+.root.small {
+    font-size: 10px;
+}
+
+.root.medium {
+    font-size: 14px;
+}
+
+.root.large {
+    font-size: 36px;
+}
