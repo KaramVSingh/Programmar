@@ -1,0 +1,19 @@
+
+.root {
+    padding: 8px 0px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* TODO: find a permanent solution for first rule */
+.firstRuleBox {
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+    padding: 4px;
+    vertical-align: middle;
+}

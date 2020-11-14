@@ -1,0 +1,10 @@
+
+.root {
+    padding: 8px 0px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+}
