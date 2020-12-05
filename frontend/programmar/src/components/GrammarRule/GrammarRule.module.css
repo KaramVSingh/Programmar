@@ -9,11 +9,15 @@
     justify-content: space-between;
 }
 
-/* TODO: find a permanent solution for first rule */
-.firstRuleBox {
+.footer {
+    margin-top: 5px;
     display: inline-block;
-    height: 24px;
-    width: 24px;
-    padding: 4px;
-    vertical-align: middle;
+}
+
+.visible {
+    
+}
+
+.notVisible {
+    display: none;
 }

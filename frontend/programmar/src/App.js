@@ -7,14 +7,19 @@ import React, { useState } from 'react';
 const emptyGrammarRule = {
   type: 'rule',
   name: '',
+  visible: true,
   data: [
-    []
+    {
+      endingSpace: false,
+      parts: []
+    }
   ]
 }
 
 const emptyRegexRule = {
   type: 'regex',
   name: '',
+  visible: true,
   data: ''
 }
 
@@ -29,11 +34,10 @@ function App() {
 
   const [, setName] = useState('');
 
-  console.log(rules)
   return (
     <div className={styles.root}>
       <div>
-        <EditText size='large' placeholder='Project Name' onChange={(value) => { setName(value) }} regex={/^[A-Za-z_]*$/} />
+        <EditText size='large' placeholder='Grammar Name' onChange={(value) => { setName(value) }} regex={/^[A-Za-z_]*$/} />
       </div>
       <div>
         <RuleList rules={rules} deleteRule={deleteRule} setRule={setRule} firstRule={firstRule} setFirstRule={setFirstRule} />

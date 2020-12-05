@@ -1,0 +1,30 @@
+
+.root {
+    padding-top: 5px;
+    width: 100%;
+}
+
+.input {
+    border: 3px solid transparent;
+    border-radius: 6px;
+    display: inline-block;
+    outline: none;
+    width: calc(100% - 40px);
+    overflow-wrap: break-word;
+    min-height: 28px;
+    font-size: 16px;
+    padding: 0px 2px;
+}
+
+.input:hover {
+    border: 3px solid rgb(216, 216, 216);
+}
+
+.input:focus {
+    border: 3px solid rgb(138, 138, 138);
+}
+
+.deleteButton {
+    display: inline-block;
+    vertical-align: top;
+}
