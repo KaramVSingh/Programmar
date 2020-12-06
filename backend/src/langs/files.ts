@@ -1,7 +1,6 @@
 import { Cfg, gatherLiterals, Rule, Statement, StatementType, Range } from '../cfg/cfg'
 import { GrandLanguageTranslator, Line, TypedVariable, Type, Condition, ConditionalOperator, DecoratedType, Join } from './translator'
 import { Metadata } from './../app/app'
-import fs = require('fs')
 
 const TOKEN_OBJECT: DecoratedType = new DecoratedType(Type.TOKEN, 1)
 const STRING_ARRAY: DecoratedType = new DecoratedType(Type.CHAR, 2)
