@@ -7,6 +7,8 @@ phases:
       nodejs: 12 
     commands:
       - echo Install...
+      - npm install -g typescript
+      - npm install
   pre_build:
     commands:
       - echo Building backend...
