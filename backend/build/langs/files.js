@@ -42,7 +42,20 @@ function makeBranch(statements, ruleName, translator) {
             var currRange = range.ranges[i];
             var operator = range.isAffirmative ? translator_1.ConditionalOperator.EQUALS : translator_1.ConditionalOperator.NOT_EQUALS;
             if (currRange[0] === currRange[1]) {
-                conditions.push(new translator_1.Condition(translator.makeFunctionCall('lookahead', ['curr']), "\"" + currRange[0] + "\"", operator, STRING));
+                var value = void 0;
+                if (currRange[0] == '\n') {
+                    value = '\\n';
+                }
+                else if (currRange[0] == '\t') {
+                    value = '\\t';
+                }
+                else if (currRange[0] == '\r') {
+                    value = '\\r';
+                }
+                else {
+                    value = currRange[0];
+                }
+                conditions.push(new translator_1.Condition(translator.makeFunctionCall('lookahead', ['curr']), "\"" + value + "\"", operator, STRING));
             }
             else {
                 conditions.push(new translator_1.Condition(translator.makeFunctionCall('inRange', [translator.makeFunctionCall('lookahead', ['curr']), "\"" + currRange[0] + "\"", "\"" + currRange[1] + "\""]), translator.makeBoolean(true), operator, BOOLEAN));

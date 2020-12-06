@@ -355,6 +355,8 @@
             }
         }
 
+        console.log(apiCall)
+
         callProgrammar(apiCall, (res) => {
             parser = (res.body.lexer.source + res.body.parser.source).replace(/^export.*$/gm, '')
             console.log(parser)
@@ -363,7 +365,6 @@
     }
 
     function checkCookie() {
-        console.log(getCookie("cfg"))
         const data = JSON.parse(atob(getCookie("cfg")))
         $('#name').val(data["metadata"]["name"])
         $('#first_rule').val(data["metadata"]["first"])
@@ -396,8 +397,6 @@
                 })
             }
         })
-        
-        console.log(getCookie("cfg"))
     }
 
     function getCookie(cname) {

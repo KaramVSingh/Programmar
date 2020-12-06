@@ -22,8 +22,15 @@
     padding: 4px 8px;
 }
 
-.container {
+.green {
+    background-color: rgb(47, 218, 84);
+}
+
+.blue {
     background-color: rgb(0, 162, 255);
+}
+
+.container {
     display: inline-block;
     width: 36px;
     height: 36px;

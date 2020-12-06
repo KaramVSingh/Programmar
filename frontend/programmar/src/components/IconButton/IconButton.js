@@ -4,7 +4,8 @@ import styles from './IconButton.module.css';
 const colors = {
     red: styles.red,
     grey: styles.grey,
-    white: styles.white
+    white: styles.white,
+    clear: styles.clear
 }
 
 const sizes = {

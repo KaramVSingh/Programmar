@@ -20,7 +20,8 @@
 .almostMedium {
     width: 24px;
     height: 24px;
-    padding: 1px;
+    padding: 1.5px;
+    padding-top: 1px;
 }
 
 .container:hover {
@@ -41,6 +42,14 @@
 
 .container.white:hover {
     background-color: rgb(235, 235, 235);
+}
+
+.container.clear {
+    background-color: rgba(255, 255, 255, 0);
+}
+
+.container.clear:hover {
+    background-color: rgba(0, 0, 0, 0.15);
 }
 
 .container.grey {

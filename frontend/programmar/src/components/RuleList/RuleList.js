@@ -2,7 +2,7 @@ import RegexRule from '../RegexRule/RegexRule';
 import GrammarRule from '../GrammarRule/GrammarRule';
 
 const validRuleRegexFE = /^[A-Za-z_]*$/
-const validRuleRegexBE = /^[A-Za-z_]+$/
+const validRuleRegexBE = /^\S+$/
 
 function RuleList({ rules, deleteRule, setRule, firstRule, setFirstRule }) {
     const ruleIdMapping = {};

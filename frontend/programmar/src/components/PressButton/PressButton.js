@@ -7,13 +7,20 @@ const sizes = {
     small: styles.small
 }
 
-function PressButton({ text, size, onClick }) {
+const colors = {
+    green: styles.green,
+    blue: styles.blue
+}
+
+function PressButton({ text, size, color, svg, onClick }) {
     const sizeStyle = sizes[size];
+    const colorStyle = colors[color] || styles.blue;
+    const Icon = svg || PlusIcon;
 
     return (
         <button className={cx(styles.root, sizeStyle)} onClick={onClick}>
-            <span className={cx(styles.container, sizeStyle)}>
-                <PlusIcon className={cx(styles.plusIcon, sizeStyle)}/>
+            <span className={cx(styles.container, sizeStyle, colorStyle)}>
+                <Icon className={cx(styles.plusIcon, sizeStyle)}/>
             </span>
             <span className={cx(styles.text, sizeStyle)}>
                 {text}
