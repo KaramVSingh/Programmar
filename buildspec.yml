@@ -12,9 +12,10 @@ phases:
   pre_build:
     commands:
       - echo Building backend...
-      - tsc backend/
+      - cd backend/
+      - tsc
       - echo Installing source NPM dependencies...
-      - cd frontend
+      - cd ../frontend
       - npm install
   build:
     commands:
