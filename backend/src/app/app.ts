@@ -122,4 +122,4 @@ function validateRequest(input: Input, metadata: Metadata) {
     }
 }
 
-export { entrypoint, handleRequest, Metadata }
+export { entrypoint, Result, handleRequest, Metadata }

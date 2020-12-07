@@ -128,6 +128,8 @@ function parserHeader(translator: GrandLanguageTranslator, cfg: Cfg): Line {
 }
 
 function makeBranch(statements: Statement[], ruleName: string,  translator: GrandLanguageTranslator): Line {
+    console.log("creating branch: " + ruleName)
+    console.log(statements)
     if(statements.length === 0) {
         return translator.makeVariableDeclaration(new TypedVariable(AST, 'ast'), translator.makeObject(Type.AST)).add(
             translator.makeSetVariable(translator.makeGetProperty('ast', 'children'), 'children')
@@ -161,21 +163,26 @@ function makeBranch(statements: Statement[], ruleName: string,  translator: Gran
         let conditions: Condition[] = []
         let range: Range = curr.data as Range
 
+        if (range.ranges.length === 0) {
+            conditions.push(new Condition(translator.makeBoolean(true), translator.makeBoolean(!range.isAffirmative), ConditionalOperator.EQUALS, BOOLEAN))
+        }
+
         for(let i = 0; i < range.ranges.length; i++) {
             let currRange = range.ranges[i]
             let operator = range.isAffirmative ? ConditionalOperator.EQUALS : ConditionalOperator.NOT_EQUALS
 
             if(currRange[0] === currRange[1]) {
                 let value
-                if (currRange[0] == '\n') { value = '\\n' } else if (currRange[0] == '\t') { value = '\\t' } else if (currRange[0] == '\r') { value = '\\r' } else { value = currRange[0] }
+                if (currRange[0] == '\n') { value = '\\n' } else if (currRange[0] == '\t') { value = '\\t' } else if (currRange[0] == '\r') { value = '\\r' } else if (currRange[0] == '\\') { value = '\\\\' } else if (currRange[0] == '"') { value = '\\\"' } else { value = currRange[0] }
                 conditions.push(new Condition(translator.makeFunctionCall('lookahead', ['curr']), `"${value}"`, operator, STRING))
             } else {
                 conditions.push(new Condition(translator.makeFunctionCall('inRange', [translator.makeFunctionCall('lookahead', ['curr']), `"${currRange[0]}"`, `"${currRange[1]}"`]), translator.makeBoolean(true), operator, BOOLEAN))
             }
         }
 
+        const acc = range.isAffirmative ? Join.OR : Join.AND
         ln.add(
-            translator.makeIf(conditions, Join.OR, 
+            translator.makeIf(conditions, acc, 
                 translator.makeSetVariable('curr', translator.makeFunctionCall('matchToken', ['curr', translator.makeFunctionCall('lookahead', ['curr'])])).add(
                     translator.makeSetVariable('data', translator.makeStringTemplate('##', [new TypedVariable(STRING, 'data'), new TypedVariable(STRING, translator.makeFunctionCall('lookahead', ['curr']))]))
                 ).add(new Line('')).add(makeBranch(statements.slice(1), ruleName, translator)),
@@ -237,7 +244,7 @@ function parserSrc(metadata: Metadata, cfg: Cfg, translator: GrandLanguageTransl
         translator.makeFunctionDeclaration(new TypedVariable(PAIR, 'parse'), [ new TypedVariable(TOKEN_OBJECT, 'token') ],
             translator.makeIf([new Condition('token', translator.makeNothing(), ConditionalOperator.EQUALS, TOKEN_OBJECT)], null,
                 translator.makeExit('"Parse Error: Unable to parse empty file."'),
-                translator.makeVariableDeclaration(new TypedVariable(AST, 'parsed'), translator.makeFunctionCall(`parse_${metadata.first}`, [ 'token'])).add(
+                translator.makeVariableDeclaration(new TypedVariable(AST, 'parsed'), translator.makeFunctionCall(`parse_${metadata.first}`, ['token'])).add(
                     translator.makeIf([new Condition(translator.makeGetProperty('parsed', 'ast'), 'ERROR', ConditionalOperator.EQUALS, AST)], null,
                         translator.makeExit(translator.makeGetProperty('parsed', translator.makeGetProperty('ast', 'data'))),
                         translator.makeIf([new Condition(translator.makeGetProperty('parsed', 'token'), translator.makeNothing(), ConditionalOperator.NOT_EQUALS, TOKEN_OBJECT)], null,

@@ -175,15 +175,15 @@ function toRules(ast: Ast, rules: Rule[], name: string): Rule[] {
                 rules.push(new Rule(`_${name}_${rules.length}`, [
                     [ new Statement(StatementType.RANGE, new Range(false, [ ['0', '9'], ['a', 'z'], ['A', 'Z'], ['_', '_'] ])) ]
                 ], true))
-            } else if(ast.data[1] === '.') {
-                rules.push(new Rule(`_${name}_${rules.length}`, [
-                    [ new Statement(StatementType.RANGE, new Range(false, [])) ]
-                ], true))
             } else {
                 rules.push(new Rule(`_${name}_${rules.length}`, [
                     [ new Statement(StatementType.RANGE, new Range(true, [ [ast.data[1], ast.data[1]] ])) ]
                 ], true))
             }
+        } else if (ast.data[0] === '.') {
+            rules.push(new Rule(`_${name}_${rules.length}`, [
+                [ new Statement(StatementType.RANGE, new Range(false, [])) ]
+            ], true))
         } else {
             rules.push(new Rule(`_${name}_${rules.length}`, [
                 [ new Statement(StatementType.RANGE, new Range(true, [ [ast.data, ast.data] ])) ]

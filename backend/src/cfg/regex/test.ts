@@ -218,27 +218,6 @@ function testToRules() {
 
 manualTesting()
 function manualTesting() {
-    const rules = regexToRules("[a-zA-Z]+[1]{2}", "Hello")
-    printCfg(rules)
-}
-
-function printCfg(rules: Rule[]) {
-    console.log("[\n")
-    rules.forEach(rule => { printRule(rule) })
-    console.log("\n]")
-}
-
-function printRule(rule: Rule) {
-    console.log(rule.name)
-    rule.is.forEach(isList => {
-        const is = isList.map(isVal => {
-            if (isVal.type == StatementType.RULE) {
-                return isVal.data 
-            } else {
-                const ranges = (isVal.data as Range).ranges.map(range => { return `[${range[0]}-${range[1]}]` }).join('')
-                return `${(isVal.data as Range).isAffirmative}:${ranges}`
-            }
-        }).join()
-        console.log(`    ${is}`)
-    })
+    const rules = regexToRules("\\.", "Hello")
+    console.log(JSON.stringify(rules, null, 2))
 }

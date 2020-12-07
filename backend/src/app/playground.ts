@@ -1,29 +1,38 @@
-import { handleRequest } from './app'
+import { entrypoint, Result } from './app'
 import { Input, InputRuleType, InputStatementType } from '../input/input'
 import { SupportedLanguages } from '../langs/translatorUtils'
 
-handleRequest(new Input({
-    'rules': [
-        {
-            'name': 'sampleRule',
-            'type': InputRuleType.RULE,
-            'is': [
-                [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '+' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-                [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '-' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-                [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '==' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-                [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '<=>' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-                [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '=' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
+const res = entrypoint(
+    {
+        input: new Input({
+            'rules': [
+                // {
+                //     'name': '',
+                //     'type': InputRuleType.RULE,
+                //     'is': [
+                //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '+' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
+                //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '-' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
+                //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '==' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
+                //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '<=>' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
+                //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '=' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
+                //     ]
+                // },
+                {
+                    'name': 'regex',
+                    'type': InputRuleType.REGEX,
+                    'is': 'a\\}'
+                }
             ]
-        },
-        {
-            'name': 'number',
-            'type': InputRuleType.REGEX,
-            'is': '[0-9]+'
+        }),
+        metadata: {
+            'ignoreWhitespace': true,
+            'language': SupportedLanguages.JAVASCRIPT,
+            'name': 'testlang',
+            'first': 'regex'
         }
-    ]
-}), {
-    'ignoreWhitespace': false,
-    'language': SupportedLanguages.JAVASCRIPT,
-    'name': 'testlang',
-    'first': 'sampleRule'
+    }
+)
+
+res.then((val) => {
+    console.log((val.body as Result).parser.source)
 })

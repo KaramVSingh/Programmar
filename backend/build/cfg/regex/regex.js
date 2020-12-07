@@ -188,16 +188,16 @@ function toRules(ast, rules, name) {
                     [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, [['0', '9'], ['a', 'z'], ['A', 'Z'], ['_', '_']]))]
                 ], true));
             }
-            else if (ast.data[1] === '.') {
-                rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
-                    [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, []))]
-                ], true));
-            }
             else {
                 rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
                     [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(true, [[ast.data[1], ast.data[1]]]))]
                 ], true));
             }
+        }
+        else if (ast.data[0] === '.') {
+            rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
+                [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, []))]
+            ], true));
         }
         else {
             rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [

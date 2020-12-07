@@ -75,6 +75,7 @@ var Result = /** @class */ (function () {
     }
     return Result;
 }());
+exports.Result = Result;
 /**
  * This function is the entrypoint to the backend
  * @param event This is the lambda event

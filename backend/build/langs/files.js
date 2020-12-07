@@ -26,6 +26,8 @@ function parserHeader(translator, cfg) {
 }
 exports.parserHeader = parserHeader;
 function makeBranch(statements, ruleName, translator) {
+    console.log("creating branch: " + ruleName);
+    console.log(statements);
     if (statements.length === 0) {
         return translator.makeVariableDeclaration(new translator_1.TypedVariable(AST, 'ast'), translator.makeObject(translator_1.Type.AST)).add(translator.makeSetVariable(translator.makeGetProperty('ast', 'children'), 'children')).add(translator.makeSetVariable(translator.makeGetProperty('ast', 'data'), 'data')).add(translator.makeSetVariable(translator.makeGetProperty('ast', 'type'), "\"" + ruleName + "\"")).add(translator.makeSetVariable(translator.makeGetProperty('result', 'ast'), 'ast')).add(translator.makeSetVariable(translator.makeGetProperty('result', 'token'), 'curr'));
     }
@@ -38,6 +40,9 @@ function makeBranch(statements, ruleName, translator) {
     else if (curr.type === cfg_1.StatementType.RANGE) {
         var conditions = [];
         var range = curr.data;
+        if (range.ranges.length === 0) {
+            conditions.push(new translator_1.Condition(translator.makeBoolean(true), translator.makeBoolean(!range.isAffirmative), translator_1.ConditionalOperator.EQUALS, BOOLEAN));
+        }
         for (var i = 0; i < range.ranges.length; i++) {
             var currRange = range.ranges[i];
             var operator = range.isAffirmative ? translator_1.ConditionalOperator.EQUALS : translator_1.ConditionalOperator.NOT_EQUALS;
@@ -52,6 +57,12 @@ function makeBranch(statements, ruleName, translator) {
                 else if (currRange[0] == '\r') {
                     value = '\\r';
                 }
+                else if (currRange[0] == '\\') {
+                    value = '\\\\';
+                }
+                else if (currRange[0] == '"') {
+                    value = '\\\"';
+                }
                 else {
                     value = currRange[0];
                 }
@@ -61,7 +72,8 @@ function makeBranch(statements, ruleName, translator) {
                 conditions.push(new translator_1.Condition(translator.makeFunctionCall('inRange', [translator.makeFunctionCall('lookahead', ['curr']), "\"" + currRange[0] + "\"", "\"" + currRange[1] + "\""]), translator.makeBoolean(true), operator, BOOLEAN));
             }
         }
-        ln.add(translator.makeIf(conditions, translator_1.Join.OR, translator.makeSetVariable('curr', translator.makeFunctionCall('matchToken', ['curr', translator.makeFunctionCall('lookahead', ['curr'])])).add(translator.makeSetVariable('data', translator.makeStringTemplate('##', [new translator_1.TypedVariable(STRING, 'data'), new translator_1.TypedVariable(STRING, translator.makeFunctionCall('lookahead', ['curr']))]))).add(new translator_1.Line('')).add(makeBranch(statements.slice(1), ruleName, translator)), translator.makeSetVariable(translator.makeGetProperty('ERROR', 'data'), translator.makeStringTemplate('Parse Error: Unexpected token -- \\"#\\"', [new translator_1.TypedVariable(STRING, translator.makeFunctionCall('lookahead', ['curr']))]))));
+        var acc = range.isAffirmative ? translator_1.Join.OR : translator_1.Join.AND;
+        ln.add(translator.makeIf(conditions, acc, translator.makeSetVariable('curr', translator.makeFunctionCall('matchToken', ['curr', translator.makeFunctionCall('lookahead', ['curr'])])).add(translator.makeSetVariable('data', translator.makeStringTemplate('##', [new translator_1.TypedVariable(STRING, 'data'), new translator_1.TypedVariable(STRING, translator.makeFunctionCall('lookahead', ['curr']))]))).add(new translator_1.Line('')).add(makeBranch(statements.slice(1), ruleName, translator)), translator.makeSetVariable(translator.makeGetProperty('ERROR', 'data'), translator.makeStringTemplate('Parse Error: Unexpected token -- \\"#\\"', [new translator_1.TypedVariable(STRING, translator.makeFunctionCall('lookahead', ['curr']))]))));
     }
     return ln.next;
 }

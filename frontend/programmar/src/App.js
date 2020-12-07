@@ -78,25 +78,41 @@ function App() {
 }
 
 async function generateParser(cfg) {
+
+  // How is this not standard in JS String?
+  const substrAfter = (string, subStr) => {
+    const split = string.split(subStr);
+    return split[split.length - 1];
+  }
+
   const res = await entrypoint(cfg);
-  const error = res.statusCode === 400 ? res.body.error.split("Illegal Argument: ")[1] : undefined;
+  const error = res.statusCode === 400 ? substrAfter(res.body.error, "Illegal Argument: ") : undefined;
   const code = res.statusCode === 400 ? undefined : res.body;
 
   let parser = undefined;
   if (code) {
     const lexerSrc = code.lexer.source;
     const parserSrc = code.parser.source;
-    const aggregated = (lexerSrc+ parserSrc).replace(/^export.*$/gm, '');
+    const aggregated = (lexerSrc + parserSrc).replace(/^export.*$/gm, '');
 
     parser = (input) => { 
-      const trigger = `parse(lex('${input.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n")}'))`
+      const trigger = `parse(lex('${input.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n")}'))`;
+      console.log(aggregated);
+      console.log(trigger);
       eval(aggregated + '\n' + trigger);
     }
   }
 
-  const refinedError = error === "Request must contain input and metadata."
-    ? "First Rule must not be null."
-    : error
+  const regexes = cfg.input.rules.filter((rule) => rule.type === "REGEX").map(rule => rule.is)
+  const badRegex = regexes.find(regex => regex.match(/( )|(\\s)|\n|\t|\r/))
+  let refinedError = undefined
+  if (error === "Request must contain input and metadata.") {
+    refinedError = "First Rule must not be null.";
+  } if (badRegex) {
+    refinedError = "Parser will ignore whitespace. Regex [" + badRegex +"] is invalid";
+  } else {
+    refinedError = error
+  }
 
   return [parser, refinedError];
 }
