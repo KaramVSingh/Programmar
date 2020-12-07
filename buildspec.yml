@@ -31,9 +31,10 @@ phases:
 # ExpressJS apps will need other artifact directories included (bin/*, public/*, routes/*, views/* etc).
 artifacts:
   files:
-    - frontend/programmar/build/robots.txt
-    - frontend/programmar/build/manifest.json
-    - frontend/programmar/build/index.html
-    - frontend/programmar/build/favicon.ico
-    - frontend/programmar/build/asset-manifest.json
-    - frontend/programmar/build/static/*
+    - robots.txt
+    - manifest.json
+    - index.html
+    - favicon.ico
+    - asset-manifest.json
+    - static/*
+  base-directory: 'frontend/programmar/build'
