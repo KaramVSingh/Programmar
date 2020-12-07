@@ -22,7 +22,7 @@ phases:
       - echo Build...
       - cd programmar
       - pwd
-      - npm build
+      - npm run-script build
   post_build:
     commands:
       - echo Build completed on `date`
