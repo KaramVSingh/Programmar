@@ -20,6 +20,8 @@ phases:
   build:
     commands:
       - echo Build...
+      - cd programmar
+      - pwd
       - npm build
   post_build:
     commands:
@@ -30,6 +32,4 @@ phases:
 # ExpressJS apps will need other artifact directories included (bin/*, public/*, routes/*, views/* etc).
 artifacts:
   files:
-    - frontend/app.js
-    - frontend/index.html
-    - frontend/package.json
+    - frontend/programmar/build
