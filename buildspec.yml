@@ -15,13 +15,11 @@ phases:
       - cd backend/
       - tsc
       - echo Installing source NPM dependencies...
-      - cd ../frontend
+      - cd ../frontend/programmar
       - npm install
   build:
     commands:
       - echo Build...
-      - cd programmar
-      - pwd
       - npm run-script build
   post_build:
     commands:
