@@ -22,9 +22,17 @@ function validateToken(token: Token) {
     if(token === null) {
         return
     }
-
+    
     if([' ', '\t', '\n', '\r', '\\ ', '\\\t', '\\\n', '\\\r', '\\s'].includes(token.curr)) {
         throw `Regex Error: Regex cannot contain whitespace.`
+    }
+
+    if(token.curr.startsWith('[') && token.curr.endsWith(']') && token.curr[1] !== '^') {
+        // we want to make sure the group does not have a space if its an affirmative grouping (negative grouping will auto omit space)
+        // we can do more checking for if space lands in a range but its not really worth it.
+        if(token.curr.match(/\t| |\n|\r/)) {
+            throw `Regex Error: Regex cannot contain whitespace.`
+        }
     }
 
     validateToken(token.next)

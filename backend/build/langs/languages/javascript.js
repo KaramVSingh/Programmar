@@ -24,7 +24,6 @@ var Javascript = /** @class */ (function () {
         return new translatorUtils_1.Line("let " + variable.name + " = " + this.value(value));
     };
     Javascript.prototype.func = function (f) {
-        console.log(f);
         var argNames = f.args.map(function (arg) { return arg.name; });
         return translatorUtils_1.Lines.of(new translatorUtils_1.Line("function " + f.name + "(" + argNames.join(', ') + ") {"), translatorUtils_1.TabbedLines.of(f.body), new translatorUtils_1.Line('}'), translatorUtils_1.BREAK_LINE);
     };

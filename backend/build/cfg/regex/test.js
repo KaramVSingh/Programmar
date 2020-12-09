@@ -186,7 +186,7 @@ function testParseBracket() {
 }
 testToRules();
 function testToRules() {
-    regex_1.regexToRules('[a-zA-Z]+', 'myRule');
+    regex_1.regexToRules('[a-z\tA-Z]{3}', 'myRule');
 }
 manualTesting();
 function manualTesting() {

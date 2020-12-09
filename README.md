@@ -2,7 +2,7 @@
 Programmar is an application made to allow users to easily generate simple lexers/parsers for their context free grammars. Available at: http://programmar-frontend.s3-website-us-west-2.amazonaws.com/. 
 
 ### Supported regular expression syntax
-Programmar generated parsers uust be language agnostic to ensure it can be ported to multiple language targets. As a result, it has its own rolled regular expression system which parses input regexes, converts them into context free grammars, and appends the generated regular expression grammar to the input grammar. Additionally, because programmar outputs parsers which ignore whitespace, the regex engine has built in validation + subtle changes to existing regex features like `.` and `\D`.
+Programmar generated parsers must be language agnostic to ensure it can support multiple language targets. As a result, it has its own rolled regular expression system which parses input regexes, converts them into context free grammars, and appends the generated regular expression grammar to the input grammar. Additionally, because programmar outputs parsers which ignore whitespace, the regex engine has built in validation + subtle changes to existing regex features like `.` and `\D`.
 
 #### Supported regex features
 1. `\d`: [0-9]

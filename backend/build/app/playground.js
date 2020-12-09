@@ -32,5 +32,5 @@ var res = app_1.entrypoint({
     }
 });
 res.then(function (val) {
-    console.log(val.body.lexer.source);
+    console.log(val.body.parser.source);
 });

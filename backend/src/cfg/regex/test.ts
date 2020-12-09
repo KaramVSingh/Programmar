@@ -213,7 +213,7 @@ function testParseBracket() {
 
 testToRules()
 function testToRules() {
-    regexToRules('[a-zA-Z]+', 'myRule')
+    regexToRules('[a-zA-Z]{3}', 'myRule')
 }
 
 manualTesting()
