@@ -7,10 +7,27 @@ import { Rule, Statement, StatementType, Range } from './../cfg'
  */
 function regexToRules(regex: string, name: string): Rule[] {
     const tokens: Token = lex(prelex(regex))
+    validateToken(tokens)
     const ast: Ast = parseRegex(tokens)
     const generated: Rule[] =  toRules(ast, [], name)
     generated.push(new Rule(name, [[ new Statement(StatementType.RULE, `_${name}_${generated.length - 1}`) ]], false))
     return generated
+}
+
+/**
+ * This function ensures that no regexes contain whitespace
+ * @param lexed regex
+ */
+function validateToken(token: Token) {
+    if(token === null) {
+        return
+    }
+
+    if([' ', '\t', '\n', '\r', '\\ ', '\\\t', '\\\n', '\\\r', '\\s'].includes(token.curr)) {
+        throw `Regex Error: Regex cannot contain whitespace.`
+    }
+
+    validateToken(token.next)
 }
 
 /**
@@ -151,11 +168,7 @@ function toRules(ast: Ast, rules: Rule[], name: string): Rule[] {
 
     } else if(ast.type === NodeType.UNIT) {
         if(ast.data[0] === '\\') {
-            if(ast.data[1] === 's') {
-                rules.push(new Rule(`_${name}_${rules.length}`, [
-                    [ new Statement(StatementType.RANGE, new Range(true, [ [' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t'] ])) ]
-                ], true))
-            } else if(ast.data[1] === 'S') {
+            if(ast.data[1] === 'S') {
                 rules.push(new Rule(`_${name}_${rules.length}`, [
                     [ new Statement(StatementType.RANGE, new Range(false, [ [' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t'] ])) ]
                 ], true))
@@ -165,7 +178,7 @@ function toRules(ast: Ast, rules: Rule[], name: string): Rule[] {
                 ], true))
             } else if(ast.data[1] === 'D') {
                 rules.push(new Rule(`_${name}_${rules.length}`, [
-                    [ new Statement(StatementType.RANGE, new Range(false, [ ['0', '9'] ])) ]
+                    [ new Statement(StatementType.RANGE, new Range(false, [ ['0', '9'], [' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t'] ])) ]
                 ], true))
             } else if(ast.data[1] === 'w') {
                 rules.push(new Rule(`_${name}_${rules.length}`, [
@@ -173,16 +186,16 @@ function toRules(ast: Ast, rules: Rule[], name: string): Rule[] {
                 ], true))
             } else if(ast.data[1] === 'W') {
                 rules.push(new Rule(`_${name}_${rules.length}`, [
-                    [ new Statement(StatementType.RANGE, new Range(false, [ ['0', '9'], ['a', 'z'], ['A', 'Z'], ['_', '_'] ])) ]
+                    [ new Statement(StatementType.RANGE, new Range(false, [ ['0', '9'], ['a', 'z'], ['A', 'Z'], ['_', '_'], [' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t'] ])) ]
                 ], true))
             } else {
                 rules.push(new Rule(`_${name}_${rules.length}`, [
                     [ new Statement(StatementType.RANGE, new Range(true, [ [ast.data[1], ast.data[1]] ])) ]
                 ], true))
             }
-        } else if (ast.data[0] === '.') {
+        } else if(ast.data[0] === '.') {
             rules.push(new Rule(`_${name}_${rules.length}`, [
-                [ new Statement(StatementType.RANGE, new Range(false, [])) ]
+                [ new Statement(StatementType.RANGE, new Range(false, [ [' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t'] ])) ]
             ], true))
         } else {
             rules.push(new Rule(`_${name}_${rules.length}`, [
@@ -237,6 +250,10 @@ function parseBracket(token: Token, isAffirmative: boolean): Range {
                 ranges.push([temp.curr, temp.next.next.curr])
                 temp = temp.next.next.next
             }
+        }
+
+        if(!isAffirmative) {
+            ranges.push([' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t'])
         }
 
         return new Range(isAffirmative, ranges)

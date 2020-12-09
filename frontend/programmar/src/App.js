@@ -78,7 +78,6 @@ function App() {
 }
 
 async function generateParser(cfg) {
-
   // How is this not standard in JS String?
   const substrAfter = (string, subStr) => {
     const split = string.split(subStr);
@@ -103,13 +102,9 @@ async function generateParser(cfg) {
     }
   }
 
-  const regexes = cfg.input.rules.filter((rule) => rule.type === "REGEX").map(rule => rule.is)
-  const badRegex = regexes.find(regex => regex.match(/( )|(\\s)|\n|\t|\r/))
   let refinedError = undefined
   if (error === "Request must contain input and metadata.") {
     refinedError = "First Rule must not be null.";
-  } if (badRegex) {
-    refinedError = "Parser will ignore whitespace. Regex [" + badRegex +"] is invalid";
   } else {
     refinedError = error
   }

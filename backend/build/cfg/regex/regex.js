@@ -18,12 +18,26 @@ var cfg_1 = require("./../cfg");
  */
 function regexToRules(regex, name) {
     var tokens = lex(prelex(regex));
+    validateToken(tokens);
     var ast = parseRegex(tokens);
     var generated = toRules(ast, [], name);
     generated.push(new cfg_1.Rule(name, [[new cfg_1.Statement(cfg_1.StatementType.RULE, "_" + name + "_" + (generated.length - 1))]], false));
     return generated;
 }
 exports.regexToRules = regexToRules;
+/**
+ * This function ensures that no regexes contain whitespace
+ * @param lexed regex
+ */
+function validateToken(token) {
+    if (token === null) {
+        return;
+    }
+    if ([' ', '\t', '\n', '\r', '\\ ', '\\\t', '\\\n', '\\\r', '\\s'].includes(token.curr)) {
+        throw "Regex Error: Regex cannot contain whitespace.";
+    }
+    validateToken(token.next);
+}
 /**
  *
  * @param ast this is the ast to be converted
@@ -158,12 +172,7 @@ function toRules(ast, rules, name) {
     }
     else if (ast.type === NodeType.UNIT) {
         if (ast.data[0] === '\\') {
-            if (ast.data[1] === 's') {
-                rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
-                    [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(true, [[' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t']]))]
-                ], true));
-            }
-            else if (ast.data[1] === 'S') {
+            if (ast.data[1] === 'S') {
                 rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
                     [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, [[' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t']]))]
                 ], true));
@@ -175,7 +184,7 @@ function toRules(ast, rules, name) {
             }
             else if (ast.data[1] === 'D') {
                 rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
-                    [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, [['0', '9']]))]
+                    [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, [['0', '9'], [' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t']]))]
                 ], true));
             }
             else if (ast.data[1] === 'w') {
@@ -185,7 +194,7 @@ function toRules(ast, rules, name) {
             }
             else if (ast.data[1] === 'W') {
                 rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
-                    [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, [['0', '9'], ['a', 'z'], ['A', 'Z'], ['_', '_']]))]
+                    [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, [['0', '9'], ['a', 'z'], ['A', 'Z'], ['_', '_'], [' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t']]))]
                 ], true));
             }
             else {
@@ -196,7 +205,7 @@ function toRules(ast, rules, name) {
         }
         else if (ast.data[0] === '.') {
             rules.push(new cfg_1.Rule("_" + name + "_" + rules.length, [
-                [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, []))]
+                [new cfg_1.Statement(cfg_1.StatementType.RANGE, new cfg_1.Range(false, [[' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t']]))]
             ], true));
         }
         else {
@@ -254,6 +263,9 @@ function parseBracket(token, isAffirmative) {
                 ranges.push([temp.curr, temp.next.next.curr]);
                 temp = temp.next.next.next;
             }
+        }
+        if (!isAffirmative) {
+            ranges.push([' ', ' '], ['\n', '\n'], ['\r', '\r'], ['\t', '\t']);
         }
         return new cfg_1.Range(isAffirmative, ranges);
     }
