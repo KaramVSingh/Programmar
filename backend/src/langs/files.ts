@@ -1,7 +1,41 @@
-import { Cfg, gatherLiterals, Rule, Statement, StatementType, Range } from '../cfg/cfg'
-import { GrandLanguageTranslator, Line, TypedVariable, Type, Condition, ConditionalOperator, DecoratedType, Join } from './translator'
+import { Cfg } from '../cfg/cfg'
+import { GrandLanguageTranslator } from './translator'
+import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, Line } from './translatorUtils'
 import { Metadata } from './../app/app'
 
+// common variable to grab all whitespace options
+const WHITESPACE = new Var('whitespace', STRING_LIST)
+
+function lexerHeader(t: GrandLanguageTranslator): Lines {
+    // Lets not bother with this until C
+    return Lines.of()
+}
+
+function lexerSrc(cfg: Cfg, t: GrandLanguageTranslator): Lines {
+    return t.lexerSrc(
+        // ----- top level variables to be referenced in either lex or helpers ----- //
+        [
+            [WHITESPACE, new STRING_LIST_VALUE(['" "', '\\t', '\\r', '\\n'])]
+        ],
+        // ----- main lex function body ----- //
+        Lines.of(),
+        // ----- helper functions ----- // 
+        []
+    )
+}
+
+function parserHeader(t: GrandLanguageTranslator, cfg: Cfg): Lines {
+    // Lets not bother with this until C
+    return Lines.of()
+}
+
+function parserSrc(metadata: Metadata, cfg: Cfg, t: GrandLanguageTranslator): Lines {
+    return Lines.of()
+}
+
+export { lexerHeader, lexerSrc, parserHeader, parserSrc }
+
+/*
 const TOKEN_OBJECT: DecoratedType = new DecoratedType(Type.TOKEN, 1)
 const STRING_ARRAY: DecoratedType = new DecoratedType(Type.CHAR, 2)
 const STRING: DecoratedType = new DecoratedType(Type.CHAR, 1)
@@ -314,3 +348,4 @@ function parserSrc(metadata: Metadata, cfg: Cfg, translator: GrandLanguageTransl
 }
 
 export { lexerHeader, lexerSrc, parserHeader, parserSrc }
+*/

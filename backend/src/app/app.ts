@@ -101,12 +101,12 @@ function handleRequest(input: Input, metadata: Metadata): Result {
 function createFiles(cfg: Cfg, metadata: Metadata): Result {
     const translator: GrandLanguageTranslator = getTranslator(metadata.language)
 
-    const lexerHeaderBody: string = lexerHeader(translator).toString()
-    const lexerSrcBody: string = lexerSrc(metadata, cfg, translator).toString()
+    const lexerHeaderBody: string = lexerHeader(translator).render(0)
+    const lexerSrcBody: string = lexerSrc(cfg, translator).render(0)
     const lexer = new Files(lexerHeaderBody, lexerSrcBody)
 
-    const parserHeaderBody: string = parserHeader(translator, cfg).toString()
-    const parserSrcBody: string = parserSrc(metadata, cfg, translator).toString()
+    const parserHeaderBody: string = parserHeader(translator, cfg).render(0)
+    const parserSrcBody: string = parserSrc(metadata, cfg, translator).render(0)
     const parser = new Files(parserHeaderBody, parserSrcBody)
 
     return new Result(lexer, parser)

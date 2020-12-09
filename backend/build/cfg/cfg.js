@@ -1,35 +1,17 @@
 "use strict";
-var __values = (this && this.__values) || function (o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+var __values = (this && this.__values) || function(o) {
+    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
-    return {
+    if (o && typeof o.length === "number") return {
         next: function () {
             if (o && i >= o.length) o = void 0;
             return { value: o && o[i++], done: !o };
         }
     };
-};
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
+    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 exports.__esModule = true;
+exports.Range = exports.StatementType = exports.Statement = exports.Rule = exports.Cfg = void 0;
 var input_1 = require("../input/input");
 var regex_1 = require("./regex/regex");
 /**
@@ -129,44 +111,3 @@ var Range = /** @class */ (function () {
     return Range;
 }());
 exports.Range = Range;
-/**
- * This function grabs all literals which are defined in the cfg. All literals are identified as having len > 1.
- * @param cfg the cfg to be read
- */
-function gatherLiterals(cfg) {
-    var e_2, _a, e_3, _b;
-    var literals = [];
-    try {
-        for (var _c = __values(cfg.rules), _d = _c.next(); !_d.done; _d = _c.next()) {
-            var rule = _d.value;
-            var flat = [].concat.apply([], __spread((rule.is)));
-            try {
-                for (var flat_1 = (e_3 = void 0, __values(flat)), flat_1_1 = flat_1.next(); !flat_1_1.done; flat_1_1 = flat_1.next()) {
-                    var statement = flat_1_1.value;
-                    if (statement.type === StatementType.RANGE) {
-                        if (statement.data.ranges.length === 1 && statement.data.ranges[0][0] === statement.data.ranges[0][1] && statement.data.ranges[0][0].length > 1) {
-                            literals.push(statement.data.ranges[0][0]);
-                        }
-                    }
-                }
-            }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
-            finally {
-                try {
-                    if (flat_1_1 && !flat_1_1.done && (_b = flat_1["return"])) _b.call(flat_1);
-                }
-                finally { if (e_3) throw e_3.error; }
-            }
-        }
-    }
-    catch (e_2_1) { e_2 = { error: e_2_1 }; }
-    finally {
-        try {
-            if (_d && !_d.done && (_a = _c["return"])) _a.call(_c);
-        }
-        finally { if (e_2) throw e_2.error; }
-    }
-    literals = literals.sort(function (a, b) { return b.length - a.length; });
-    return literals.filter(function (item, index) { return literals.indexOf(item) === index; });
-}
-exports.gatherLiterals = gatherLiterals;

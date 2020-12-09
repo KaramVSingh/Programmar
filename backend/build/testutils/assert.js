@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+exports.assertThrows = exports.assert = void 0;
 function assert(expression) {
     if (!expression) {
         throw 'Expression does not evaluate to true.';

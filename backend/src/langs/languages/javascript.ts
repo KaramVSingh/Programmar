@@ -1,6 +1,59 @@
-import { GrandLanguageTranslator, TypedVariable, Line, Condition, Join, ConditionalOperator, Type, DecoratedType } from '../translator'
+import { GrandLanguageTranslator } from '../translator'
 import { Cfg } from '../../cfg/cfg'
+import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST } from '../translatorUtils';
 
+class Javascript implements GrandLanguageTranslator {
+
+    // ----- files ----- //
+
+    lexerSrc(consts: [Var, Value][], body: Lines, functions: Func[]): Lines {
+        const constLines = consts.map(c => this.var(c[0], c[1]))
+        const lexFunction = new Func(TOKEN, 'lex', [new Var('str', STRING)], body)
+        const functionLines = functions.map(f => this.func(f))
+
+        return Lines.of(
+            // top level variable declarations
+            new Lines(constLines),
+            BREAK_LINE,
+            // lex function
+            this.func(lexFunction),
+            // helper functions
+            new Lines(functionLines)
+        )
+    }
+
+    // ----- language specifics ----- //
+
+    var(variable: Var, value: Value): Line {
+        return new Line(`let ${variable.name} = ${this.value(value)}`)
+    }
+
+    func(f: Func): Lines {
+        const argNames = f.args.map(arg => arg.name)
+        return Lines.of(
+            new Line(`function ${f.name}(${argNames.join(', ')}) {`),
+            TabbedLines.of(
+                f.body
+            ),
+            new Line('}'),
+            BREAK_LINE
+        )
+    }
+
+    // ----- internal ----- //
+
+    value(v: Value): string {
+        switch(v.type) {
+            case STRING_LIST:
+                const joined = (v as STRING_LIST_VALUE).value.join(", ")
+                return `[${joined}]`
+        }
+    }
+}
+
+export { Javascript }
+
+/*
 class Javascript implements GrandLanguageTranslator {
     // THE FILE FUNCTIONS
 
@@ -250,3 +303,4 @@ class Javascript implements GrandLanguageTranslator {
 }
 
 export { Javascript }
+*/

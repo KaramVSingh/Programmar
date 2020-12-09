@@ -100,25 +100,25 @@ class Range {
     }
 }
 
-/**
- * This function grabs all literals which are defined in the cfg. All literals are identified as having len > 1.
- * @param cfg the cfg to be read
- */
-function gatherLiterals(cfg: Cfg): string[] {
-    let literals: string[] = []
-    for(let rule of cfg.rules) {
-        const flat: Statement[] = [].concat(...(rule.is))
-        for(let statement of flat) {
-            if(statement.type === StatementType.RANGE) {
-                if((statement.data as Range).ranges.length === 1 && (statement.data as Range).ranges[0][0] === (statement.data as Range).ranges[0][1] && (statement.data as Range).ranges[0][0].length > 1) {
-                    literals.push((statement.data as Range).ranges[0][0])
-                }
-            }
-        }
-    }
+// /**
+//  * This function grabs all literals which are defined in the cfg. All literals are identified as having len > 1.
+//  * @param cfg the cfg to be read
+//  */
+// function gatherLiterals(cfg: Cfg): string[] {
+//     let literals: string[] = []
+//     for(let rule of cfg.rules) {
+//         const flat: Statement[] = [].concat(...(rule.is))
+//         for(let statement of flat) {
+//             if(statement.type === StatementType.RANGE) {
+//                 if((statement.data as Range).ranges.length === 1 && (statement.data as Range).ranges[0][0] === (statement.data as Range).ranges[0][1] && (statement.data as Range).ranges[0][0].length > 1) {
+//                     literals.push((statement.data as Range).ranges[0][0])
+//                 }
+//             }
+//         }
+//     }
 
-    literals =  literals.sort((a: string, b: string) => { return b.length - a.length })
-    return literals.filter((item, index) => literals.indexOf(item) === index)
-}
+//     literals =  literals.sort((a: string, b: string) => { return b.length - a.length })
+//     return literals.filter((item, index) => literals.indexOf(item) === index)
+// }
 
-export { Cfg, Rule, Statement, StatementType, Range, gatherLiterals }
+export { Cfg, Rule, Statement, StatementType, Range }

@@ -24,21 +24,3 @@ function testRule() {
         'is': 'a+(bsh(t)|bh[65-9]*){12}done+'
     }));
 }
-testGatherLiterals();
-function testGatherLiterals() {
-    var in1 = new input_1.Input({
-        'rules': [
-            {
-                'name': 'myrule',
-                'type': input_1.InputRuleType.RULE,
-                'is': [
-                    [{ 'type': input_1.InputStatementType.LITERAL, 'ref': 'a token' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': 'a' }],
-                    [{ 'type': input_1.InputStatementType.LITERAL, 'ref': '>=' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '<=' }]
-                ]
-            }
-        ]
-    });
-    input_1.Input.validate(in1);
-    var test = cfg_1.Cfg.fromInput(in1);
-    assert_1.assert(JSON.stringify(cfg_1.gatherLiterals(test)) === '["a token",">=","<="]');
-}

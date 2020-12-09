@@ -1,199 +1,292 @@
 "use strict";
 exports.__esModule = true;
-var translator_1 = require("../translator");
+exports.Javascript = void 0;
+var translatorUtils_1 = require("../translatorUtils");
 var Javascript = /** @class */ (function () {
     function Javascript() {
     }
-    // THE FILE FUNCTIONS
-    Javascript.prototype.lexerHeader = function () {
-        return new translator_1.Line('');
+    // ----- files ----- //
+    Javascript.prototype.lexerSrc = function (consts, body, functions) {
+        var _this = this;
+        var constLines = consts.map(function (c) { return _this["var"](c[0], c[1]); });
+        var lexFunction = new translatorUtils_1.Func(translatorUtils_1.TOKEN, 'lex', [new translatorUtils_1.Var('str', translatorUtils_1.STRING)], body);
+        var functionLines = functions.map(function (f) { return _this.func(f); });
+        return translatorUtils_1.Lines.of(
+        // top level variable declarations
+        new translatorUtils_1.Lines(constLines), translatorUtils_1.BREAK_LINE, 
+        // lex function
+        this.func(lexFunction), 
+        // helper functions
+        new translatorUtils_1.Lines(functionLines));
     };
-    Javascript.prototype.preLexer = function () {
-        return new translator_1.Line('');
+    // ----- language specifics ----- //
+    Javascript.prototype["var"] = function (variable, value) {
+        return new translatorUtils_1.Line("let " + variable.name + " = " + this.value(value));
     };
-    Javascript.prototype.postLexer = function () {
-        return this.makeExport([new translator_1.TypedVariable(null, 'lex')]);
+    Javascript.prototype.func = function (f) {
+        console.log(f);
+        var argNames = f.args.map(function (arg) { return arg.name; });
+        return translatorUtils_1.Lines.of(new translatorUtils_1.Line("function " + f.name + "(" + argNames.join(', ') + ") {"), translatorUtils_1.TabbedLines.of(f.body), new translatorUtils_1.Line('}'), translatorUtils_1.BREAK_LINE);
     };
-    Javascript.prototype.parserHeader = function (cfg) {
-        return new translator_1.Line('');
-    };
-    Javascript.prototype.preParser = function () {
-        return new translator_1.Line('');
-    };
-    Javascript.prototype.postParser = function () {
-        return this.makeExport([new translator_1.TypedVariable(null, 'parse')]);
-    };
-    Javascript.prototype.fileExtention = function (isHeader) {
-        return 'js';
-    };
-    // THE STATEMENT FUNCTIONS
-    Javascript.prototype.makeExport = function (variables) {
-        var head = new translator_1.Line('');
-        for (var i = 0; i < variables.length; i++) {
-            var variable = variables[i];
-            head.add(new translator_1.Line("exports." + variable.name + " = " + variable.name));
+    // ----- internal ----- //
+    Javascript.prototype.value = function (v) {
+        switch (v.type) {
+            case translatorUtils_1.STRING_LIST:
+                var joined = v.value.join(", ");
+                return "[" + joined + "]";
         }
-        return head.next;
-    };
-    Javascript.prototype.makeImport = function (variables, file) {
-        var head = new translator_1.Line('');
-        for (var i = 0; i < variables.length; i++) {
-            var variable = variables[i];
-            head.add(new translator_1.Line("const " + variable.name + " = require('./" + file + "')"));
-        }
-        return head.next;
-    };
-    Javascript.prototype.makeStruct = function (name, variables) {
-        var head = new translator_1.Line("class " + name + " {");
-        head.next = this._makeStruct(variables).tabUp();
-        head.getLast().next = new translator_1.Line('}');
-        return head;
-    };
-    Javascript.prototype._makeStruct = function (variables) {
-        if (variables.length === 0) {
-            return null;
-        }
-        return new translator_1.Line(variables[0].name, this._makeStruct(variables.slice(1)));
-    };
-    Javascript.prototype.makeStaticArray = function (values) {
-        return "[" + values.join(', ') + "]";
-    };
-    Javascript.prototype.makeVariableDeclaration = function (variable, value) {
-        return new translator_1.Line("let " + variable.name + " = " + value);
-    };
-    Javascript.prototype.makeBoolean = function (bool) {
-        return bool.toString();
-    };
-    Javascript.prototype.makeFunctionDeclaration = function (func, params, body) {
-        return new translator_1.Line("function " + func.name + "(" + params.map(function (value) { return value.name; }).join(', ') + ") {").add(body.tabUp()).add(new translator_1.Line('}'));
-    };
-    Javascript.prototype.makeClassicFor = function (variable, start, end, body) {
-        return new translator_1.Line("for(" + this.makeVariableDeclaration(variable, start.toString()).line + "; " + variable.name + " < " + end + "; " + variable.name + "++) {").add(body.tabUp()).add(new translator_1.Line('}'));
-    };
-    Javascript.prototype.makeFunctionCall = function (name, args) {
-        return name + "(" + args.join(', ') + ")";
-    };
-    Javascript.prototype.makeConditionalOperator = function (operator) {
-        switch (operator) {
-            case translator_1.ConditionalOperator.EQUALS:
-                return '===';
-            case translator_1.ConditionalOperator.NOT_EQUALS:
-                return '!==';
-            case translator_1.ConditionalOperator.LESS:
-                return '<';
-            case translator_1.ConditionalOperator.GREATER:
-                return '>';
-            case translator_1.ConditionalOperator.GREATER_OR_EQUALS:
-                return '>=';
-            case translator_1.ConditionalOperator.LESS_OR_EQUAL:
-                return '<=';
-            default:
-                throw 'Internal Error: Unimplemented.';
-        }
-    };
-    Javascript.prototype.makeCondition = function (condition) {
-        return condition.left + " " + this.makeConditionalOperator(condition.operator) + " " + condition.right;
-    };
-    Javascript.prototype.makeJoin = function (join) {
-        switch (join) {
-            case translator_1.Join.AND:
-                return '&&';
-            case translator_1.Join.OR:
-                return '||';
-            default:
-                throw 'Internal Error: Unimplemented.';
-        }
-    };
-    Javascript.prototype.makeIf = function (conditions, join, body, alternative) {
-        var gates = [];
-        for (var i = 0; i < conditions.length; i++) {
-            gates.push(this.makeCondition(conditions[i]));
-        }
-        var line = new translator_1.Line('');
-        if (gates.length === 1) {
-            line.add(new translator_1.Line("if(" + gates[0] + ") {"));
-        }
-        else {
-            var enclosed = gates.map(function (value) { return "(" + value + ")"; });
-            var spacedJoin = " " + this.makeJoin(join) + " ";
-            line.add(new translator_1.Line("if(" + enclosed.join(spacedJoin) + ") {"));
-        }
-        line.add(body.tabUp());
-        if (alternative !== null) {
-            line.add(new translator_1.Line('} else {')).add(alternative.tabUp());
-        }
-        return line.add(new translator_1.Line('}')).next;
-    };
-    Javascript.prototype.makeGetProperty = function (variable, property) {
-        return variable + "." + property;
-    };
-    Javascript.prototype.makeGetArrayAccess = function (variable, index) {
-        return variable + "[" + index + "]";
-    };
-    Javascript.prototype.makeReturn = function (value) {
-        return new translator_1.Line("return " + value);
-    };
-    Javascript.prototype.makeObject = function (def) {
-        return '{}';
-    };
-    Javascript.prototype.makeSetVariable = function (variable, set) {
-        return new translator_1.Line(variable + " = " + set);
-    };
-    Javascript.prototype.makeNothing = function () {
-        return 'null';
-    };
-    Javascript.prototype.makeStringLength = function (variable) {
-        return variable + ".length";
-    };
-    Javascript.prototype.makeWhile = function (condition, body) {
-        return new translator_1.Line("while(" + this.makeCondition(condition) + ") {").add(body.tabUp()).add(new translator_1.Line('}'));
-    };
-    Javascript.prototype.makeAddition = function (left, right) {
-        return left + " + " + right;
-    };
-    Javascript.prototype.makeSubtraction = function (left, right) {
-        return left + " - " + right;
-    };
-    Javascript.prototype.makeBreak = function () {
-        return new translator_1.Line('break');
-    };
-    Javascript.prototype.makeContinue = function () {
-        return new translator_1.Line('continue');
-    };
-    Javascript.prototype.makeStringStartingAt = function (str, index) {
-        return str + ".slice(" + index + ")";
-    };
-    Javascript.prototype.makeStringFromChar = function (variable) {
-        return variable;
-    };
-    Javascript.prototype.makeStringTemplate = function (template, variables) {
-        var variableIndex = 0;
-        var newTemplate = '`';
-        for (var i = 0; i < template.length; i++) {
-            if (template[i] === '#') {
-                newTemplate += '${' + variables[variableIndex++].name + '}';
-            }
-            else {
-                newTemplate += template[i];
-            }
-        }
-        return newTemplate + '`';
-    };
-    Javascript.prototype.makeExit = function (message) {
-        return new translator_1.Line("throw " + message);
-    };
-    Javascript.prototype.makeEmptyList = function (type) {
-        return '[]';
-    };
-    Javascript.prototype.makeEmptyString = function () {
-        return '""';
-    };
-    Javascript.prototype.makeGetCharValue = function (char) {
-        return char + ".charCodeAt(0)";
-    };
-    Javascript.prototype.makeAddToArray = function (arr, index) {
-        return new translator_1.Line(arr + ".push(" + index + ")");
     };
     return Javascript;
 }());
 exports.Javascript = Javascript;
+/*
+class Javascript implements GrandLanguageTranslator {
+    // THE FILE FUNCTIONS
+
+    lexerHeader(): Line {
+        return new Line('')
+    }
+
+    preLexer(): Line {
+        return new Line('')
+    }
+
+    postLexer(): Line {
+        return this.makeExport([ new TypedVariable(null, 'lex') ])
+    }
+
+    parserHeader(cfg: Cfg): Line {
+        return new Line('')
+    }
+
+    preParser(): Line {
+        return new Line('')
+    }
+
+    postParser(): Line {
+        return this.makeExport([ new TypedVariable(null, 'parse') ])
+    }
+
+    fileExtention(isHeader: boolean): string {
+        return 'js'
+    }
+
+    // THE STATEMENT FUNCTIONS
+
+    makeExport(variables: TypedVariable[]): Line {
+        const head = new Line('')
+        for(let i = 0; i < variables.length; i++) {
+            let variable: TypedVariable = variables[i]
+            head.add(new Line(`exports.${variable.name} = ${variable.name}`))
+        }
+        
+        return head.next
+    }
+
+    makeImport(variables: TypedVariable[], file: string) {
+        const head = new Line('')
+        for(let i = 0; i < variables.length; i++) {
+            let variable: TypedVariable = variables[i]
+            head.add(new Line(`const ${variable.name} = require(\'./${file}\')`))
+        }
+
+        return head.next
+    }
+
+    makeStruct(name: string, variables: TypedVariable[]): Line {
+        const head: Line = new Line(`class ${name} {`)
+        head.next = this._makeStruct(variables).tabUp()
+        head.getLast().next = new Line('}')
+        return head
+    }
+
+    private _makeStruct(variables: TypedVariable[]): Line {
+        if(variables.length === 0) {
+            return null
+        }
+
+        return new Line(variables[0].name, this._makeStruct(variables.slice(1)))
+    }
+
+    makeStaticArray(values: string[]): string {
+        return `[${values.join(', ')}]`
+    }
+
+    makeVariableDeclaration(variable: TypedVariable, value: string): Line {
+        return new Line(`let ${variable.name} = ${value}`)
+    }
+
+    makeBoolean(bool: boolean): string {
+        return bool.toString()
+    }
+
+    makeFunctionDeclaration(func: TypedVariable, params: TypedVariable[], body: Line): Line {
+        return new Line(`function ${func.name}(${params.map((value) => value.name).join(', ')}) {`).add(
+            body.tabUp()
+        ).add(new Line('}'))
+    }
+
+    makeClassicFor(variable: TypedVariable, start: string, end: string, body: Line): Line {
+        return new Line(`for(${this.makeVariableDeclaration(variable, start.toString()).line}; ${variable.name} < ${end}; ${variable.name}++) {`).add(
+            body.tabUp()
+        ).add(new Line('}'))
+    }
+
+    makeFunctionCall(name: string, args: string[]): string {
+        return `${name}(${args.join(', ')})`
+    }
+
+    makeConditionalOperator(operator: ConditionalOperator): string {
+        switch(operator) {
+            case ConditionalOperator.EQUALS:
+            return '==='
+            case ConditionalOperator.NOT_EQUALS:
+            return '!=='
+            case ConditionalOperator.LESS:
+            return '<'
+            case ConditionalOperator.GREATER:
+            return '>'
+            case ConditionalOperator.GREATER_OR_EQUALS:
+            return '>='
+            case ConditionalOperator.LESS_OR_EQUAL:
+            return '<='
+            default:
+            throw 'Internal Error: Unimplemented.'
+        }
+    }
+
+    makeCondition(condition: Condition): string {
+        return `${condition.left} ${this.makeConditionalOperator(condition.operator)} ${condition.right}`
+    }
+
+    makeJoin(join: Join): string {
+        switch(join) {
+            case Join.AND:
+            return '&&'
+            case Join.OR:
+            return '||'
+            default:
+            throw 'Internal Error: Unimplemented.'
+        }
+    }
+
+    makeIf(conditions: Condition[], join: Join, body: Line, alternative: Line): Line {
+        let gates: string[] = []
+        for(let i = 0; i < conditions.length; i++) {
+            gates.push(this.makeCondition(conditions[i]))
+        }
+
+        const line: Line = new Line('')
+        if(gates.length === 1) {
+            line.add(new Line(`if(${gates[0]}) {`))
+        } else {
+            let enclosed: string[] = gates.map((value: string) => `(${value})`)
+            let spacedJoin: string = ` ${this.makeJoin(join)} `
+            line.add(new Line(`if(${enclosed.join(spacedJoin)}) {`))
+        }
+
+        line.add(body.tabUp())
+
+        if(alternative !== null) {
+            line.add(new Line('} else {')).add(alternative.tabUp())
+        }
+
+        return line.add(new Line('}')).next
+    }
+
+    makeGetProperty(variable: string, property: string): string {
+        return `${variable}.${property}`
+    }
+
+    makeGetArrayAccess(variable: string, index: string): string {
+        return `${variable}[${index}]`
+    }
+
+    makeReturn(value: string): Line {
+        return new Line(`return ${value}`)
+    }
+
+    makeObject(def: Type): string {
+        return '{}'
+    }
+
+    makeSetVariable(variable: string, set: string): Line {
+        return new Line(`${variable} = ${set}`)
+    }
+
+    makeNothing(): string {
+        return 'null'
+    }
+
+    makeStringLength(variable: string): string {
+        return `${variable}.length`
+    }
+
+    makeWhile(condition: Condition, body: Line): Line {
+        return new Line(`while(${this.makeCondition(condition)}) {`).add(
+            body.tabUp()
+        ).add(new Line('}'))
+    }
+
+    makeAddition(left: string, right: string): string {
+        return `${left} + ${right}`
+    }
+
+    makeSubtraction(left: string, right: string): string {
+        return `${left} - ${right}`
+    }
+
+    makeBreak(): Line {
+        return new Line('break')
+    }
+
+    makeContinue(): Line {
+        return new Line('continue')
+    }
+
+    makeStringStartingAt(str: string, index: string): string {
+        return `${str}.slice(${index})`
+    }
+
+    makeStringFromChar(variable: string): string {
+        return variable
+    }
+
+    makeStringTemplate(template: string, variables: TypedVariable[]): string {
+        let variableIndex = 0
+        let newTemplate = '`'
+
+        for(let i = 0; i < template.length; i++) {
+            if(template[i] === '#') {
+                newTemplate += '${' + variables[variableIndex++].name + '}'
+            } else {
+                newTemplate += template[i]
+            }
+        }
+
+        return newTemplate + '`'
+    }
+
+    makeExit(message: string): Line {
+        return new Line(`throw ${message}`)
+    }
+
+    makeEmptyList(type: DecoratedType): string {
+        return '[]'
+    }
+
+    makeEmptyString(): string {
+        return '""'
+    }
+
+    makeGetCharValue(char: string): string {
+        return `${char}.charCodeAt(0)`
+    }
+
+    makeAddToArray(arr: string, index: string): Line {
+        return new Line(`${arr}.push(${index})`)
+    }
+}
+
+export { Javascript }
+*/ 

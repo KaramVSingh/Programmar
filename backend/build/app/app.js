@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -34,8 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 exports.__esModule = true;
+exports.Metadata = exports.handleRequest = exports.Result = exports.entrypoint = void 0;
 var input_1 = require("../input/input");
 var cfg_1 = require("../cfg/cfg");
 var translatorUtils_1 = require("./../langs/translatorUtils");
@@ -80,7 +81,7 @@ exports.Result = Result;
  * This function is the entrypoint to the backend
  * @param event This is the lambda event
  */
-var entrypoint = function (event) { return __awaiter(_this, void 0, void 0, function () {
+var entrypoint = function (event) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         if (Request.isRequest(event)) {
             try {
@@ -132,11 +133,11 @@ function handleRequest(input, metadata) {
 exports.handleRequest = handleRequest;
 function createFiles(cfg, metadata) {
     var translator = translatorUtils_1.getTranslator(metadata.language);
-    var lexerHeaderBody = files_1.lexerHeader(translator).toString();
-    var lexerSrcBody = files_1.lexerSrc(metadata, cfg, translator).toString();
+    var lexerHeaderBody = files_1.lexerHeader(translator).render(0);
+    var lexerSrcBody = files_1.lexerSrc(cfg, translator).render(0);
     var lexer = new Files(lexerHeaderBody, lexerSrcBody);
-    var parserHeaderBody = files_1.parserHeader(translator, cfg).toString();
-    var parserSrcBody = files_1.parserSrc(metadata, cfg, translator).toString();
+    var parserHeaderBody = files_1.parserHeader(translator, cfg).render(0);
+    var parserSrcBody = files_1.parserSrc(metadata, cfg, translator).render(0);
     var parser = new Files(parserHeaderBody, parserSrcBody);
     return new Result(lexer, parser);
 }
