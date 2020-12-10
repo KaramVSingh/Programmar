@@ -50,6 +50,8 @@ var ConditionalOperator;
     ConditionalOperator[ConditionalOperator["GREATER_OR_EQUALS"] = 3] = "GREATER_OR_EQUALS";
     ConditionalOperator[ConditionalOperator["EQUALS"] = 4] = "EQUALS";
     ConditionalOperator[ConditionalOperator["NOT_EQUALS"] = 5] = "NOT_EQUALS";
+    ConditionalOperator[ConditionalOperator["OR"] = 6] = "OR";
+    ConditionalOperator[ConditionalOperator["AND"] = 7] = "AND";
 })(ConditionalOperator || (ConditionalOperator = {}));
 exports.ConditionalOperator = ConditionalOperator;
 var Join;

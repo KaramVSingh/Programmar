@@ -61,12 +61,19 @@ class Javascript implements GrandLanguageTranslator {
         return new Line(`return ${v.name}`)
     }
 
-    if(c: Condition, body: Lines): Lines {
-        return Lines.of(
+    if(c: Condition, body: Lines, other: Lines): Lines {
+        const open = [
             new Line(`if ${this._condition(c)} {`),
             new TabbedLines([body]),
-            new Line('}')
-        )
+        ]
+
+        if (other) {
+            open.push(new Line('} else {'))
+            open.push(new TabbedLines([other]))
+        }
+
+        open.push(new Line('}'))
+        return new Lines(open)
     }
 
     none(): Var { return new Var('null', null) }
@@ -159,6 +166,12 @@ class Javascript implements GrandLanguageTranslator {
                 break
             case ConditionalOperator.NOT_EQUALS:
                 operator = '!=='
+                break
+            case ConditionalOperator.OR:
+                operator = '||'
+                break
+            case ConditionalOperator.AND:
+                operator = '&&'
                 break
         }
 

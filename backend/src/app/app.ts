@@ -102,7 +102,7 @@ function createFiles(cfg: Cfg, metadata: Metadata): Result {
     const translator: GrandLanguageTranslator = getTranslator(metadata.language)
 
     const lexerHeaderBody: string = lexerHeader(translator).render(0)
-    const lexerSrcBody: string = lexerSrc(cfg, translator).render(0)
+    const lexerSrcBody: string = lexerSrc(translator).render(0)
     const lexer = new Files(lexerHeaderBody, lexerSrcBody)
 
     const parserHeaderBody: string = parserHeader(translator, cfg).render(0)

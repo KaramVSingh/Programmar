@@ -23,7 +23,7 @@ interface GrandLanguageTranslator {
 
     ret: (v: Var) => Line
 
-    if: (c: Condition, body: Lines) => Lines
+    if: (c: Condition, body: Lines, other: Lines) => Lines
 
     none: () => Var
 

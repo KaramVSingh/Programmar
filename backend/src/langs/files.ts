@@ -1,10 +1,9 @@
 import { Cfg } from '../cfg/cfg'
 import { GrandLanguageTranslator } from './translator'
-import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, Line, TOKEN, STRING_VALUE, TOKEN_VALUE, Func, STRING, INT, INT_VALUE, Condition, ConditionalOperator, BREAK_LINE } from './translatorUtils'
+import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, TOKEN, STRING_VALUE, TOKEN_VALUE, Func, STRING, INT, INT_VALUE, Condition, ConditionalOperator, BREAK_LINE } from './translatorUtils'
 import { Metadata } from './../app/app'
 
 // common variable to grab all whitespace options
-const WHITESPACE = new Var('whitespace', STRING_LIST)
 const _SPACE = new STRING_VALUE(' ')
 const _TAB = new STRING_VALUE('\\t')
 const _RETURN = new STRING_VALUE('\\r')
@@ -15,15 +14,13 @@ function lexerHeader(t: GrandLanguageTranslator): Lines {
     return Lines.of()
 }
 
-function lexerSrc(cfg: Cfg, t: GrandLanguageTranslator): Lines {
+function lexerSrc(t: GrandLanguageTranslator): Lines {
     const str = new Var('str', STRING)
     const index = new Var('index', INT)
 
     return t.lexerSrc(
         // ----- top level variables to be referenced in either lex or helpers ----- //
-        [
-            [WHITESPACE, new STRING_LIST_VALUE([_SPACE, _TAB, _RETURN, _NEWLINE])]
-        ],
+        [],
         // ----- main lex function body ----- //
         Lines.of(
             t.ret(t.call(_lex(t, str, index), [str, new INT_VALUE(0)]) )
@@ -41,7 +38,7 @@ function lexerSrc(cfg: Cfg, t: GrandLanguageTranslator): Lines {
  * which would require more definitions
  */
 function _lex(t: GrandLanguageTranslator, str: Var, index: Var): Func {
-    const terminalCall = new Func(TOKEN, '_lex', [str, index], Lines.of())
+    const _lex_call = new Func(TOKEN, '_lex', [str, index], Lines.of())
     return new Func(
         TOKEN,
         '_lex',
@@ -51,12 +48,35 @@ function _lex(t: GrandLanguageTranslator, str: Var, index: Var): Func {
                 new Condition(t.length(str), ConditionalOperator.EQUALS, index),
                 Lines.of(
                     t.ret(t.none())
-                )
+                ),
+                null
             ),
             BREAK_LINE,
-            t.ret(
-                t.value(
-                    new TOKEN_VALUE(t.access(str, index), t.call(terminalCall, [str, t.add(index, new INT_VALUE(1))]))
+            t.if(
+                new Condition(
+                    new Condition(
+                        new Condition(t.access(str, index), ConditionalOperator.NOT_EQUALS, _NEWLINE),
+                        ConditionalOperator.AND,
+                        new Condition(t.access(str, index), ConditionalOperator.NOT_EQUALS, _RETURN)
+                    ),
+                    ConditionalOperator.AND,
+                    new Condition(
+                        new Condition(t.access(str, index), ConditionalOperator.NOT_EQUALS, _SPACE),
+                        ConditionalOperator.AND,
+                        new Condition(t.access(str, index), ConditionalOperator.NOT_EQUALS, _TAB),
+                    )
+                ),
+                Lines.of(
+                    t.ret(
+                        t.value(
+                            new TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new INT_VALUE(1))]))
+                        )
+                    )
+                ),
+                Lines.of(
+                    t.ret(
+                        t.call(_lex_call, [str, t.add(index, new INT_VALUE(1))])
+                    )
                 )
             )
         )

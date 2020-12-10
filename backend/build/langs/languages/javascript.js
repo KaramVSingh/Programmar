@@ -48,8 +48,17 @@ var Javascript = /** @class */ (function () {
     Javascript.prototype.ret = function (v) {
         return new translatorUtils_1.Line("return " + v.name);
     };
-    Javascript.prototype["if"] = function (c, body) {
-        return translatorUtils_1.Lines.of(new translatorUtils_1.Line("if " + this._condition(c) + " {"), new translatorUtils_1.TabbedLines([body]), new translatorUtils_1.Line('}'));
+    Javascript.prototype["if"] = function (c, body, other) {
+        var open = [
+            new translatorUtils_1.Line("if " + this._condition(c) + " {"),
+            new translatorUtils_1.TabbedLines([body]),
+        ];
+        if (other) {
+            open.push(new translatorUtils_1.Line('} else {'));
+            open.push(new translatorUtils_1.TabbedLines([other]));
+        }
+        open.push(new translatorUtils_1.Line('}'));
+        return new translatorUtils_1.Lines(open);
     };
     Javascript.prototype.none = function () { return new translatorUtils_1.Var('null', null); };
     Javascript.prototype.get = function (v, prop) {
@@ -135,6 +144,12 @@ var Javascript = /** @class */ (function () {
                 break;
             case translatorUtils_1.ConditionalOperator.NOT_EQUALS:
                 operator = '!==';
+                break;
+            case translatorUtils_1.ConditionalOperator.OR:
+                operator = '||';
+                break;
+            case translatorUtils_1.ConditionalOperator.AND:
+                operator = '&&';
                 break;
         }
         return "(" + leftConv + " " + operator + " " + rightConv + ")";

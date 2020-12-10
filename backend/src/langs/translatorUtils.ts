@@ -40,7 +40,9 @@ enum ConditionalOperator {
     GREATER,
     GREATER_OR_EQUALS,
     EQUALS,
-    NOT_EQUALS
+    NOT_EQUALS,
+    OR,
+    AND
 }
 
 enum Join {
