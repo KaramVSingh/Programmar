@@ -31,7 +31,6 @@ class Var {
 }
 
 interface Value {
-    value: any
     type: Type
 }
 
@@ -51,17 +50,13 @@ enum Join {
 
 class Condition {
     operator: ConditionalOperator
-    left: Condition | Var
-    right: Condition | Var
+    left: Condition | Var | Value
+    right: Condition | Var | Value
 
-    // type of the arguments on either side of the condition
-    type: Type
-
-    constructor(left: Condition | Var, operator: ConditionalOperator, right: Condition | Var, type: Type) {
+    constructor(left: Condition | Var | Value, operator: ConditionalOperator, right: Condition | Var | Value) {
         this.left = left
         this.right = right
         this.operator = operator
-        this.type = type
     }
 }
 
@@ -80,17 +75,58 @@ class Func {
 }
 
 // ----- Constants to avoid repetition ----- //
-
 const TOKEN = new Type(BaseType.TOKEN, 1)
+class TOKEN_VALUE implements Value {
+    curr: STRING_VALUE|Var
+    next: TOKEN_VALUE|Var
+    type: Type
+
+    constructor(curr: STRING_VALUE|Var, next: TOKEN_VALUE|Var) {
+        this.curr = curr
+        this.next = next
+        this.type = TOKEN
+    }
+}
+
+const INT = new Type(BaseType.INT, 0)
+class INT_VALUE implements Value {
+    value: number
+    type: Type
+
+    constructor(value: number) {
+        this.value = value
+        this.type = INT
+    }
+}
+
+const CHAR = new Type(BaseType.CHAR, 0)
+class CHAR_VALUE implements Value {
+    value: string
+    type: Type
+
+    constructor(value: string) {
+        this.value = value
+        this.type = CHAR
+    }
+}
 
 const STRING = new Type(BaseType.CHAR, 1)
+class STRING_VALUE implements Value {
+    value: string
+    type: Type
+
+    constructor(value: string) {
+        this.value = value
+        this.type = STRING
+    }
+}
 
 const STRING_LIST = new Type(BaseType.CHAR, 2)
 class STRING_LIST_VALUE implements Value {
-    value: string[]
+    value: STRING_VALUE[]
     type: Type
 
-    constructor(value: string[]) {
+    constructor(value: STRING_VALUE[]) {
         this.value = value
         this.type = STRING_LIST
     }
@@ -156,7 +192,7 @@ function getTranslator(lang: SupportedLanguages): GrandLanguageTranslator {
 }
 
 export { 
-    TOKEN, STRING, STRING_LIST, STRING_LIST_VALUE,
+    TOKEN, TOKEN_VALUE, INT, INT_VALUE, CHAR, CHAR_VALUE, STRING, STRING_VALUE, STRING_LIST, STRING_LIST_VALUE,
     BaseType, Type, Var, Value, Func, ConditionalOperator, Join, Condition, 
     BREAK_LINE, Line, Lines, TabbedLines, 
     SupportedLanguages, getTranslator 

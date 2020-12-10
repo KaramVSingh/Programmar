@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
-exports.getTranslator = exports.SupportedLanguages = exports.TabbedLines = exports.Lines = exports.Line = exports.BREAK_LINE = exports.Condition = exports.Join = exports.ConditionalOperator = exports.Func = exports.Var = exports.Type = exports.BaseType = exports.STRING_LIST_VALUE = exports.STRING_LIST = exports.STRING = exports.TOKEN = void 0;
+exports.getTranslator = exports.SupportedLanguages = exports.TabbedLines = exports.Lines = exports.Line = exports.BREAK_LINE = exports.Condition = exports.Join = exports.ConditionalOperator = exports.Func = exports.Var = exports.Type = exports.BaseType = exports.STRING_LIST_VALUE = exports.STRING_LIST = exports.STRING_VALUE = exports.STRING = exports.CHAR_VALUE = exports.CHAR = exports.INT_VALUE = exports.INT = exports.TOKEN_VALUE = exports.TOKEN = void 0;
 var javascript_1 = require("./languages/javascript");
 // ----- We're gonna do some hardcore meta programming so lets define some basics ----- //
 var BaseType;
@@ -59,11 +59,10 @@ var Join;
 })(Join || (Join = {}));
 exports.Join = Join;
 var Condition = /** @class */ (function () {
-    function Condition(left, operator, right, type) {
+    function Condition(left, operator, right) {
         this.left = left;
         this.right = right;
         this.operator = operator;
-        this.type = type;
     }
     return Condition;
 }());
@@ -81,8 +80,45 @@ exports.Func = Func;
 // ----- Constants to avoid repetition ----- //
 var TOKEN = new Type(BaseType.TOKEN, 1);
 exports.TOKEN = TOKEN;
+var TOKEN_VALUE = /** @class */ (function () {
+    function TOKEN_VALUE(curr, next) {
+        this.curr = curr;
+        this.next = next;
+        this.type = TOKEN;
+    }
+    return TOKEN_VALUE;
+}());
+exports.TOKEN_VALUE = TOKEN_VALUE;
+var INT = new Type(BaseType.INT, 0);
+exports.INT = INT;
+var INT_VALUE = /** @class */ (function () {
+    function INT_VALUE(value) {
+        this.value = value;
+        this.type = INT;
+    }
+    return INT_VALUE;
+}());
+exports.INT_VALUE = INT_VALUE;
+var CHAR = new Type(BaseType.CHAR, 0);
+exports.CHAR = CHAR;
+var CHAR_VALUE = /** @class */ (function () {
+    function CHAR_VALUE(value) {
+        this.value = value;
+        this.type = CHAR;
+    }
+    return CHAR_VALUE;
+}());
+exports.CHAR_VALUE = CHAR_VALUE;
 var STRING = new Type(BaseType.CHAR, 1);
 exports.STRING = STRING;
+var STRING_VALUE = /** @class */ (function () {
+    function STRING_VALUE(value) {
+        this.value = value;
+        this.type = STRING;
+    }
+    return STRING_VALUE;
+}());
+exports.STRING_VALUE = STRING_VALUE;
 var STRING_LIST = new Type(BaseType.CHAR, 2);
 exports.STRING_LIST = STRING_LIST;
 var STRING_LIST_VALUE = /** @class */ (function () {

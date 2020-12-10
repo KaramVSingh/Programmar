@@ -1,5 +1,5 @@
 import { Cfg } from '../cfg/cfg'
-import { Lines, Var, Func, Line, Value } from './translatorUtils';
+import { Lines, Var, Func, Line, Value, Condition, INT_VALUE } from './translatorUtils';
 
 interface GrandLanguageTranslator {
 
@@ -15,12 +15,29 @@ interface GrandLanguageTranslator {
     lexerSrc: (consts: [Var, Value][], lexer: Lines, functions: Func[]) => Lines
 
     // ----- Language specifics ----- //
-    var: (v: Var, preset: Value) => Line
+    var: (v: Var, preset: Value | Var) => Line
 
     func: (f: Func) => Lines
 
+    call: (f: Func, args: (Var|Value)[]) => Var
+
+    ret: (v: Var) => Line
+
+    if: (c: Condition, body: Lines) => Lines
+
+    none: () => Var
+
+    get: (v: Var, prop: Var) => Var
+
+    access: (v: Var, index: INT_VALUE|Var) => Var
+
+    add: (a: INT_VALUE|Var, b: INT_VALUE|Var) => Var
+
+    // ----- more complex functions ----- //
+    length: (v: Var) => Var
+
     // to be used internally, keeping it here to avoid forgetting
-    value: (v: Value) => string
+    value: (v: Value) => Var
 }
 
 /*

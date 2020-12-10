@@ -21,18 +21,159 @@ var Javascript = /** @class */ (function () {
     };
     // ----- language specifics ----- //
     Javascript.prototype["var"] = function (variable, value) {
-        return new translatorUtils_1.Line("let " + variable.name + " = " + this.value(value));
+        if (value instanceof translatorUtils_1.Var) {
+            var v = value;
+            return new translatorUtils_1.Line("let " + variable.name + " = " + v.name);
+        }
+        else {
+            return new translatorUtils_1.Line("let " + variable.name + " = " + this.value(value).name);
+        }
     };
     Javascript.prototype.func = function (f) {
         var argNames = f.args.map(function (arg) { return arg.name; });
         return translatorUtils_1.Lines.of(new translatorUtils_1.Line("function " + f.name + "(" + argNames.join(', ') + ") {"), translatorUtils_1.TabbedLines.of(f.body), new translatorUtils_1.Line('}'), translatorUtils_1.BREAK_LINE);
     };
+    Javascript.prototype.call = function (f, args) {
+        var _this = this;
+        var argVals = args.map(function (arg) {
+            if (arg instanceof translatorUtils_1.Var) {
+                return arg.name;
+            }
+            else {
+                return _this.value(arg).name;
+            }
+        });
+        return new translatorUtils_1.Var(f.name + "(" + argVals.join(', ') + ")", f.returnType);
+    };
+    Javascript.prototype.ret = function (v) {
+        return new translatorUtils_1.Line("return " + v.name);
+    };
+    Javascript.prototype["if"] = function (c, body) {
+        return translatorUtils_1.Lines.of(new translatorUtils_1.Line("if " + this._condition(c) + " {"), new translatorUtils_1.TabbedLines([body]), new translatorUtils_1.Line('}'));
+    };
+    Javascript.prototype.none = function () { return new translatorUtils_1.Var('null', null); };
+    Javascript.prototype.get = function (v, prop) {
+        return new translatorUtils_1.Var(v.name + "." + prop.name, prop.type);
+    };
+    Javascript.prototype.add = function (a, b) {
+        var aConv;
+        if (a instanceof translatorUtils_1.Var) {
+            aConv = a.name;
+        }
+        else {
+            aConv = a.value.toString();
+        }
+        var bConv;
+        if (b instanceof translatorUtils_1.Var) {
+            bConv = b.name;
+        }
+        else {
+            bConv = b.value.toString();
+        }
+        return new translatorUtils_1.Var("(" + aConv + " + " + bConv + ")", translatorUtils_1.INT);
+    };
+    Javascript.prototype.access = function (v, index) {
+        var newType;
+        switch (v.type) {
+            case translatorUtils_1.STRING:
+                newType = translatorUtils_1.CHAR;
+                break;
+            default:
+                throw 'unimplemented';
+        }
+        if (index instanceof translatorUtils_1.Var) {
+            return new translatorUtils_1.Var(v.name + "[" + index.name + "]", newType);
+        }
+        else {
+            return new translatorUtils_1.Var(v.name + "[" + index.value + "]", newType);
+        }
+    };
+    // ----- more complex functions ----- //
+    Javascript.prototype.length = function (v) {
+        return this.get(v, new translatorUtils_1.Var('length', translatorUtils_1.INT));
+    };
     // ----- internal ----- //
+    Javascript.prototype._condition = function (c) {
+        var left = c.left;
+        var right = c.right;
+        var leftConv;
+        var rightConv;
+        if (left instanceof translatorUtils_1.Condition) {
+            leftConv = this._condition(left);
+        }
+        else if (left instanceof translatorUtils_1.Var) {
+            leftConv = left.name;
+        }
+        else {
+            leftConv = this.value(left).name;
+        }
+        if (right instanceof translatorUtils_1.Condition) {
+            rightConv = this._condition(right);
+        }
+        else if (right instanceof translatorUtils_1.Var) {
+            rightConv = right.name;
+        }
+        else {
+            rightConv = this.value(right).name;
+        }
+        var operator;
+        switch (c.operator) {
+            case translatorUtils_1.ConditionalOperator.EQUALS:
+                operator = '===';
+                break;
+            case translatorUtils_1.ConditionalOperator.GREATER:
+                operator = '>';
+                break;
+            case translatorUtils_1.ConditionalOperator.GREATER_OR_EQUALS:
+                operator = '>=';
+                break;
+            case translatorUtils_1.ConditionalOperator.LESS:
+                operator = '<';
+                break;
+            case translatorUtils_1.ConditionalOperator.LESS_OR_EQUAL:
+                operator = '<=';
+                break;
+            case translatorUtils_1.ConditionalOperator.NOT_EQUALS:
+                operator = '!==';
+                break;
+        }
+        return "(" + leftConv + " " + operator + " " + rightConv + ")";
+    };
     Javascript.prototype.value = function (v) {
+        var _this = this;
+        if (!v) {
+            return this.none();
+        }
         switch (v.type) {
             case translatorUtils_1.STRING_LIST:
-                var joined = v.value.join(", ");
-                return "[" + joined + "]";
+                var convSL = v;
+                var stringValues = convSL.value.map(function (strValue) { return _this.value(strValue).name; });
+                return new translatorUtils_1.Var("[" + stringValues.join(', ') + "]", translatorUtils_1.STRING_LIST);
+            case translatorUtils_1.STRING:
+                var convS = v;
+                return new translatorUtils_1.Var("'" + convS.value + "'", translatorUtils_1.STRING);
+            case translatorUtils_1.TOKEN:
+                var convT = v;
+                var curr = void 0;
+                if (convT.curr instanceof translatorUtils_1.Var) {
+                    curr = convT.curr.name;
+                }
+                else {
+                    curr = this.value(convT.curr).name;
+                }
+                var next = void 0;
+                if (convT.next instanceof translatorUtils_1.Var) {
+                    next = convT.next.name;
+                }
+                else {
+                    next = this.value(convT.next).name;
+                }
+                return new translatorUtils_1.Var("{ 'curr': " + curr + ", 'next': " + next + " }", translatorUtils_1.TOKEN);
+            case translatorUtils_1.INT:
+                var convI = v;
+                return new translatorUtils_1.Var("" + convI.value, translatorUtils_1.INT);
+            default:
+                throw 'unimplemented';
         }
     };
     return Javascript;

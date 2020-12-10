@@ -1,6 +1,6 @@
 import { GrandLanguageTranslator } from '../translator'
 import { Cfg } from '../../cfg/cfg'
-import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST } from '../translatorUtils';
+import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST, STRING_VALUE, TOKEN_VALUE, INT_VALUE, INT, Condition, ConditionalOperator, Type, CHAR } from '../translatorUtils';
 
 class Javascript implements GrandLanguageTranslator {
 
@@ -24,8 +24,13 @@ class Javascript implements GrandLanguageTranslator {
 
     // ----- language specifics ----- //
 
-    var(variable: Var, value: Value): Line {
-        return new Line(`let ${variable.name} = ${this.value(value)}`)
+    var(variable: Var, value: Value|Var): Line {
+        if (value instanceof Var) {
+            const v = value as Var
+            return new Line(`let ${variable.name} = ${v.name}`)
+        } else {
+            return new Line(`let ${variable.name} = ${this.value(value).name}`)
+        }
     }
 
     func(f: Func): Lines {
@@ -40,13 +45,158 @@ class Javascript implements GrandLanguageTranslator {
         )
     }
 
+    call(f: Func, args: (Var|Value)[]): Var {
+        const argVals = args.map(arg => {
+            if (arg instanceof Var) {
+                return (arg as Var).name
+            } else {
+                return this.value(arg as Value).name
+            }
+        })
+
+        return new Var(`${f.name}(${argVals.join(', ')})`, f.returnType)
+    }
+
+    ret(v: Var): Line {
+        return new Line(`return ${v.name}`)
+    }
+
+    if(c: Condition, body: Lines): Lines {
+        return Lines.of(
+            new Line(`if ${this._condition(c)} {`),
+            new TabbedLines([body]),
+            new Line('}')
+        )
+    }
+
+    none(): Var { return new Var('null', null) }
+
+    get(v: Var, prop: Var): Var {
+        return new Var(`${v.name}.${prop.name}`, prop.type)
+    }
+
+    add(a: INT_VALUE|Var, b: INT_VALUE|Var): Var {
+        let aConv: string
+        if (a instanceof Var) {
+            aConv = a.name
+        } else {
+            aConv = a.value.toString()
+        }
+
+        let bConv: string
+        if (b instanceof Var) {
+            bConv = b.name
+        } else {
+            bConv = b.value.toString()
+        }
+
+        return new Var(`(${aConv} + ${bConv})`, INT)
+    }
+
+    access(v: Var, index: INT_VALUE|Var): Var {
+        let newType: Type
+        switch(v.type) {
+            case STRING:
+                newType = CHAR
+                break
+            default:
+                throw 'unimplemented'
+        }
+
+        if(index instanceof Var) {
+            return new Var(`${v.name}[${index.name}]`, newType)
+        } else {
+            return new Var(`${v.name}[${index.value}]`, newType)
+        }
+    }
+
+    // ----- more complex functions ----- //
+    length(v: Var): Var {
+        return this.get(v, new Var('length', INT))
+    }
+
     // ----- internal ----- //
 
-    value(v: Value): string {
+    _condition(c: Condition): string {
+        const left = c.left
+        const right = c.right
+
+        let leftConv: string
+        let rightConv: string
+
+        if(left instanceof Condition) {
+            leftConv = this._condition(left)
+        } else if(left instanceof Var) {
+            leftConv = (left as Var).name
+        } else {
+            leftConv = this.value(left as Value).name
+        }
+
+        if(right instanceof Condition) {
+            rightConv = this._condition(right)
+        } else if(right instanceof Var) {
+            rightConv = (right as Var).name
+        } else {
+            rightConv = this.value(right as Value).name
+        }
+
+        let operator: string
+        switch(c.operator) {
+            case ConditionalOperator.EQUALS:
+                operator = '==='
+                break
+            case ConditionalOperator.GREATER:
+                operator = '>'
+                break
+            case ConditionalOperator.GREATER_OR_EQUALS:
+                operator = '>='
+                break
+            case ConditionalOperator.LESS:
+                operator = '<'
+                break
+            case ConditionalOperator.LESS_OR_EQUAL:
+                operator = '<='
+                break
+            case ConditionalOperator.NOT_EQUALS:
+                operator = '!=='
+                break
+        }
+
+        return `(${leftConv} ${operator} ${rightConv})`
+    }
+
+    value(v: Value): Var {
+        if (!v) { return this.none() }
         switch(v.type) {
             case STRING_LIST:
-                const joined = (v as STRING_LIST_VALUE).value.join(", ")
-                return `[${joined}]`
+                const convSL = v as STRING_LIST_VALUE
+                const stringValues = convSL.value.map(strValue => this.value(strValue).name)
+                return new Var(`[${stringValues.join(', ')}]`, STRING_LIST)
+            case STRING:
+                const convS = v as STRING_VALUE
+                return new Var(`'${convS.value}'`, STRING)
+            case TOKEN:
+                const convT = v as TOKEN_VALUE
+                let curr: string
+                if (convT.curr instanceof Var) {
+                    curr = convT.curr.name
+                } else {
+                    curr = this.value(convT.curr).name
+                }
+
+                let next: string
+                if (convT.next instanceof Var) {
+                    next = convT.next.name
+                } else {
+                    next = this.value(convT.next).name
+                }
+                
+                return new Var(`{ 'curr': ${curr}, 'next': ${next} }`, TOKEN)
+            case INT:
+                const convI = v as INT_VALUE
+                return new Var(`${convI.value}`, INT)
+            default:
+                throw 'unimplemented'
         }
     }
 }

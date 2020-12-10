@@ -1,10 +1,14 @@
 import { Cfg } from '../cfg/cfg'
 import { GrandLanguageTranslator } from './translator'
-import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, Line } from './translatorUtils'
+import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, Line, TOKEN, STRING_VALUE, TOKEN_VALUE, Func, STRING, INT, INT_VALUE, Condition, ConditionalOperator, BREAK_LINE } from './translatorUtils'
 import { Metadata } from './../app/app'
 
 // common variable to grab all whitespace options
 const WHITESPACE = new Var('whitespace', STRING_LIST)
+const _SPACE = new STRING_VALUE(' ')
+const _TAB = new STRING_VALUE('\\t')
+const _RETURN = new STRING_VALUE('\\r')
+const _NEWLINE = new STRING_VALUE('\\n')
 
 function lexerHeader(t: GrandLanguageTranslator): Lines {
     // Lets not bother with this until C
@@ -12,15 +16,50 @@ function lexerHeader(t: GrandLanguageTranslator): Lines {
 }
 
 function lexerSrc(cfg: Cfg, t: GrandLanguageTranslator): Lines {
+    const str = new Var('str', STRING)
+    const index = new Var('index', INT)
+
     return t.lexerSrc(
         // ----- top level variables to be referenced in either lex or helpers ----- //
         [
-            [WHITESPACE, new STRING_LIST_VALUE(['" "', '\\t', '\\r', '\\n'])]
+            [WHITESPACE, new STRING_LIST_VALUE([_SPACE, _TAB, _RETURN, _NEWLINE])]
         ],
         // ----- main lex function body ----- //
-        Lines.of(),
+        Lines.of(
+            t.ret(t.call(_lex(t, str, index), [str, new INT_VALUE(0)]) )
+        ),
         // ----- helper functions ----- // 
-        []
+        [
+            _lex(t, str, index)
+        ]
+    )
+}
+
+/**
+ * A recursive abstract function to convert the string into a linked list of characters.
+ * There is no technical reason to convert the string other than ease of use and better opportunities to avoid loop constructs
+ * which would require more definitions
+ */
+function _lex(t: GrandLanguageTranslator, str: Var, index: Var): Func {
+    const terminalCall = new Func(TOKEN, '_lex', [str, index], Lines.of())
+    return new Func(
+        TOKEN,
+        '_lex',
+        [str, index],
+        Lines.of(
+            t.if(
+                new Condition(t.length(str), ConditionalOperator.EQUALS, index),
+                Lines.of(
+                    t.ret(t.none())
+                )
+            ),
+            BREAK_LINE,
+            t.ret(
+                t.value(
+                    new TOKEN_VALUE(t.access(str, index), t.call(terminalCall, [str, t.add(index, new INT_VALUE(1))]))
+                )
+            )
+        )
     )
 }
 

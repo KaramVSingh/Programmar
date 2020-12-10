@@ -4,23 +4,40 @@ exports.parserSrc = exports.parserHeader = exports.lexerSrc = exports.lexerHeade
 var translatorUtils_1 = require("./translatorUtils");
 // common variable to grab all whitespace options
 var WHITESPACE = new translatorUtils_1.Var('whitespace', translatorUtils_1.STRING_LIST);
+var _SPACE = new translatorUtils_1.STRING_VALUE(' ');
+var _TAB = new translatorUtils_1.STRING_VALUE('\\t');
+var _RETURN = new translatorUtils_1.STRING_VALUE('\\r');
+var _NEWLINE = new translatorUtils_1.STRING_VALUE('\\n');
 function lexerHeader(t) {
     // Lets not bother with this until C
     return translatorUtils_1.Lines.of();
 }
 exports.lexerHeader = lexerHeader;
 function lexerSrc(cfg, t) {
+    var str = new translatorUtils_1.Var('str', translatorUtils_1.STRING);
+    var index = new translatorUtils_1.Var('index', translatorUtils_1.INT);
     return t.lexerSrc(
     // ----- top level variables to be referenced in either lex or helpers ----- //
     [
-        [WHITESPACE, new translatorUtils_1.STRING_LIST_VALUE(['" "', '\\t', '\\r', '\\n'])]
+        [WHITESPACE, new translatorUtils_1.STRING_LIST_VALUE([_SPACE, _TAB, _RETURN, _NEWLINE])]
     ], 
     // ----- main lex function body ----- //
-    translatorUtils_1.Lines.of(), 
+    translatorUtils_1.Lines.of(t.ret(t.call(_lex(t, str, index), [str, new translatorUtils_1.INT_VALUE(0)]))), 
     // ----- helper functions ----- // 
-    []);
+    [
+        _lex(t, str, index)
+    ]);
 }
 exports.lexerSrc = lexerSrc;
+/**
+ * A recursive abstract function to convert the string into a linked list of characters.
+ * There is no technical reason to convert the string other than ease of use and better opportunities to avoid loop constructs
+ * which would require more definitions
+ */
+function _lex(t, str, index) {
+    var terminalCall = new translatorUtils_1.Func(translatorUtils_1.TOKEN, '_lex', [str, index], translatorUtils_1.Lines.of());
+    return new translatorUtils_1.Func(translatorUtils_1.TOKEN, '_lex', [str, index], translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(t.length(str), translatorUtils_1.ConditionalOperator.EQUALS, index), translatorUtils_1.Lines.of(t.ret(t.none()))), translatorUtils_1.BREAK_LINE, t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(t.access(str, index), t.call(terminalCall, [str, t.add(index, new translatorUtils_1.INT_VALUE(1))]))))));
+}
 function parserHeader(t, cfg) {
     // Lets not bother with this until C
     return translatorUtils_1.Lines.of();
