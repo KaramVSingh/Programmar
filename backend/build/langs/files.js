@@ -1,39 +1,103 @@
 "use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spread = (this && this.__spread) || function () {
+    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+    return ar;
+};
 exports.__esModule = true;
 exports.parserSrc = exports.parserHeader = exports.lexerSrc = exports.lexerHeader = void 0;
+var cfg_1 = require("../cfg/cfg");
 var translatorUtils_1 = require("./translatorUtils");
 // common variable to grab all whitespace options
 var _SPACE = new translatorUtils_1.STRING_VALUE(' ');
 var _TAB = new translatorUtils_1.STRING_VALUE('\\t');
 var _RETURN = new translatorUtils_1.STRING_VALUE('\\r');
 var _NEWLINE = new translatorUtils_1.STRING_VALUE('\\n');
+var literals = new translatorUtils_1.Var('literals', translatorUtils_1.STRING_LIST);
+function getCfgLiterals(cfg) {
+    var literals = [];
+    cfg.rules.map(function (rule) {
+        if (rule.isGenerated) {
+            return [];
+        }
+        var flat = [].concat.apply([], __spread((rule.is)));
+        var flatArray = flat.map(function (stmt) {
+            if (stmt.type === cfg_1.StatementType.RANGE) {
+                var asRanges = stmt.data.ranges;
+                if (asRanges.length === 1 && asRanges[0][0] === asRanges[0][1]) {
+                    return asRanges[0][0];
+                }
+            }
+            return null;
+        });
+        flatArray
+            .filter(function (is) { return is; })
+            .forEach(function (literal) { return literals.push(literal); });
+    });
+    return literals
+        .sort(function (a, b) { return b.length - a.length; })
+        .filter(function (item, index) { return literals.indexOf(item) === index; });
+}
 function lexerHeader(t) {
     // Lets not bother with this until C
     return translatorUtils_1.Lines.of();
 }
 exports.lexerHeader = lexerHeader;
-function lexerSrc(t) {
+function lexerSrc(cfg, t) {
+    // ----- We need all the string literals to lex out ----- //
+    var cfgLiterals = getCfgLiterals(cfg);
+    var cfgLiteralsAsValues = cfgLiterals.map(function (literal) { return new translatorUtils_1.STRING_VALUE(literal); });
+    // some helper variables
     var str = new translatorUtils_1.Var('str', translatorUtils_1.STRING);
     var index = new translatorUtils_1.Var('index', translatorUtils_1.INT);
+    var onSpace = new translatorUtils_1.Var('onSpace', translatorUtils_1.INT);
     return t.lexerSrc(
     // ----- top level variables to be referenced in either lex or helpers ----- //
-    [], 
+    [
+        [literals, new translatorUtils_1.STRING_LIST_VALUE(cfgLiteralsAsValues)]
+    ], 
     // ----- main lex function body ----- //
-    translatorUtils_1.Lines.of(t.ret(t.call(_lex(t, str, index), [str, new translatorUtils_1.INT_VALUE(0)]))), 
+    translatorUtils_1.Lines.of(t.ret(t.call(_lex(t, str, index, onSpace), [str, new translatorUtils_1.INT_VALUE(0), new translatorUtils_1.BOOLEAN_VALUE(false)]))), 
     // ----- helper functions ----- // 
     [
-        _lex(t, str, index)
+        _next_space_index(t, str, index),
+        _lex(t, str, index, onSpace)
     ]);
 }
 exports.lexerSrc = lexerSrc;
+/**
+ * A recursive function to grab the index of the next space/end of string. This will be used to evaluate if a token is a
+ * CFG literal token.
+ */
+function _next_space_index(t, str, index) {
+    var _next_space_index_call = new translatorUtils_1.Func(translatorUtils_1.INT, '_next_space_index', [str, index], translatorUtils_1.Lines.of());
+    return new translatorUtils_1.Func(translatorUtils_1.INT, '_next_space_index', [str, index], translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(t.length(str), translatorUtils_1.ConditionalOperator.EQUALS, index), translatorUtils_1.Lines.of(t.ret(index)), null), translatorUtils_1.BREAK_LINE, t["if"](new translatorUtils_1.Condition(new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.EQUALS, _NEWLINE), translatorUtils_1.ConditionalOperator.OR, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.EQUALS, _RETURN)), translatorUtils_1.ConditionalOperator.OR, new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.EQUALS, _SPACE), translatorUtils_1.ConditionalOperator.OR, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.EQUALS, _TAB))), translatorUtils_1.Lines.of(t.ret(index)), null), translatorUtils_1.BREAK_LINE, t.ret(t.call(_next_space_index_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1))]))));
+}
 /**
  * A recursive abstract function to convert the string into a linked list of characters.
  * There is no technical reason to convert the string other than ease of use and better opportunities to avoid loop constructs
  * which would require more definitions
  */
-function _lex(t, str, index) {
-    var _lex_call = new translatorUtils_1.Func(translatorUtils_1.TOKEN, '_lex', [str, index], translatorUtils_1.Lines.of());
-    return new translatorUtils_1.Func(translatorUtils_1.TOKEN, '_lex', [str, index], translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(t.length(str), translatorUtils_1.ConditionalOperator.EQUALS, index), translatorUtils_1.Lines.of(t.ret(t.none())), null), translatorUtils_1.BREAK_LINE, t["if"](new translatorUtils_1.Condition(new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _NEWLINE), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _RETURN)), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _SPACE), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _TAB))), translatorUtils_1.Lines.of(t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1))]))))), translatorUtils_1.Lines.of(t.ret(t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1))]))))));
+function _lex(t, str, index, onSpace) {
+    var _lex_call = new translatorUtils_1.Func(translatorUtils_1.TOKEN, '_lex', [str, index, onSpace], translatorUtils_1.Lines.of());
+    var untilSpace = new translatorUtils_1.Var('untilSpace', translatorUtils_1.STRING);
+    var literal = new translatorUtils_1.Var('literal', translatorUtils_1.STRING);
+    return new translatorUtils_1.Func(translatorUtils_1.TOKEN, '_lex', [str, index, onSpace], translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(t.length(str), translatorUtils_1.ConditionalOperator.EQUALS, index), translatorUtils_1.Lines.of(t.ret(t.none())), null), translatorUtils_1.BREAK_LINE, t["if"](new translatorUtils_1.Condition(new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _NEWLINE), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _RETURN)), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _SPACE), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _TAB))), translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(new translatorUtils_1.Condition(onSpace, translatorUtils_1.ConditionalOperator.EQUALS, new translatorUtils_1.BOOLEAN_VALUE(true)), translatorUtils_1.ConditionalOperator.OR, new translatorUtils_1.Condition(index, translatorUtils_1.ConditionalOperator.EQUALS, new translatorUtils_1.INT_VALUE(0))), translatorUtils_1.Lines.of(t["var"](untilSpace, t.substring(str, index, t.call(_next_space_index(t, str, index), [str, index]))), t.forEach(literal, literals, translatorUtils_1.Lines.of(t["if"](t.strEquals(literal, untilSpace), translatorUtils_1.Lines.of(t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(untilSpace, t.call(_lex_call, [str, t.add(index, t.length(untilSpace)), new translatorUtils_1.BOOLEAN_VALUE(false)]))))), null))), translatorUtils_1.BREAK_LINE, t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1)), new translatorUtils_1.BOOLEAN_VALUE(false)]))))), translatorUtils_1.Lines.of(t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1)), new translatorUtils_1.BOOLEAN_VALUE(false)]))))))), translatorUtils_1.Lines.of(t.ret(t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1)), new translatorUtils_1.BOOLEAN_VALUE(true)]))))));
 }
 function parserHeader(t, cfg) {
     // Lets not bother with this until C

@@ -6,19 +6,19 @@ var translatorUtils_1 = require("../langs/translatorUtils");
 var res = app_1.entrypoint({
     input: new input_1.Input({
         'rules': [
-            // {
-            //     'name': '',
-            //     'type': InputRuleType.RULE,
-            //     'is': [
-            //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '+' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-            //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '-' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-            //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '==' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-            //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '<=>' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-            //         [ { 'type': InputStatementType.RULE, 'ref': 'number' }, { 'type': InputStatementType.LITERAL, 'ref': '=' }, { 'type': InputStatementType.RULE, 'ref': 'number' } ],
-            //     ]
-            // },
             {
-                'name': 'regex',
+                'name': 'a',
+                'type': input_1.InputRuleType.RULE,
+                'is': [
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '+' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '-' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '==' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '<=>' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '=' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
+                ]
+            },
+            {
+                'name': 'number',
                 'type': input_1.InputRuleType.REGEX,
                 'is': 'a\\}'
             }
@@ -28,9 +28,9 @@ var res = app_1.entrypoint({
         'ignoreWhitespace': true,
         'language': translatorUtils_1.SupportedLanguages.JAVASCRIPT,
         'name': 'testlang',
-        'first': 'regex'
+        'first': 'a'
     }
 });
 res.then(function (val) {
-    console.log(val.body.lexer.source);
+    console.log(val.body.lexer.source)
 });

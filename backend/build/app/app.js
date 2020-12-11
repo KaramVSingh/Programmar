@@ -134,7 +134,7 @@ exports.handleRequest = handleRequest;
 function createFiles(cfg, metadata) {
     var translator = translatorUtils_1.getTranslator(metadata.language);
     var lexerHeaderBody = files_1.lexerHeader(translator).render(0);
-    var lexerSrcBody = files_1.lexerSrc(translator).render(0);
+    var lexerSrcBody = files_1.lexerSrc(cfg, translator).render(0);
     var lexer = new Files(lexerHeaderBody, lexerSrcBody);
     var parserHeaderBody = files_1.parserHeader(translator, cfg).render(0);
     var parserSrcBody = files_1.parserSrc(metadata, cfg, translator).render(0);

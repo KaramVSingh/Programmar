@@ -1,6 +1,6 @@
-import { Cfg } from '../cfg/cfg'
+import { Cfg, StatementType, Statement, Range } from '../cfg/cfg'
 import { GrandLanguageTranslator } from './translator'
-import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, TOKEN, STRING_VALUE, TOKEN_VALUE, Func, STRING, INT, INT_VALUE, Condition, ConditionalOperator, BREAK_LINE } from './translatorUtils'
+import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, TOKEN, STRING_VALUE, TOKEN_VALUE, Func, STRING, INT, INT_VALUE, Condition, ConditionalOperator, BREAK_LINE, BOOLEAN_VALUE } from './translatorUtils'
 import { Metadata } from './../app/app'
 
 // common variable to grab all whitespace options
@@ -8,27 +8,116 @@ const _SPACE = new STRING_VALUE(' ')
 const _TAB = new STRING_VALUE('\\t')
 const _RETURN = new STRING_VALUE('\\r')
 const _NEWLINE = new STRING_VALUE('\\n')
+const literals = new Var('literals', STRING_LIST)
+
+function getCfgLiterals(cfg: Cfg): string[] {
+    const literals = []
+    cfg.rules.map(rule => {
+        if (rule.isGenerated) { return [] }
+        const flat: Statement[] = [].concat(...(rule.is))
+        const flatArray = flat.map(stmt => {
+            if (stmt.type === StatementType.RANGE) {
+                const asRanges = (stmt.data as Range).ranges
+                if (asRanges.length === 1 && asRanges[0][0] === asRanges[0][1]) {
+                    return asRanges[0][0]
+                }
+            }
+
+            return null
+        })
+
+        flatArray
+            .filter(is => is)
+            .forEach(literal => literals.push(literal))
+    })
+
+    return literals
+        .sort((a: string, b: string) => { return b.length - a.length })
+        .filter((item, index) => literals.indexOf(item) === index)
+}
+
+function parserHeader(t: GrandLanguageTranslator, cfg: Cfg): Lines {
+    // Lets not bother with this until C
+    return Lines.of()
+}
+
+function parserSrc(metadata: Metadata, cfg: Cfg, t: GrandLanguageTranslator): Lines {
+    return Lines.of()
+}
 
 function lexerHeader(t: GrandLanguageTranslator): Lines {
     // Lets not bother with this until C
     return Lines.of()
 }
 
-function lexerSrc(t: GrandLanguageTranslator): Lines {
+function lexerSrc(cfg: Cfg, t: GrandLanguageTranslator): Lines {
+    // ----- We need all the string literals to lex out ----- //
+    const cfgLiterals = getCfgLiterals(cfg)
+    const cfgLiteralsAsValues = cfgLiterals.map(literal => new STRING_VALUE(literal))
+
+    // some helper variables
     const str = new Var('str', STRING)
     const index = new Var('index', INT)
+    const onSpace = new Var('onSpace', INT)
 
     return t.lexerSrc(
         // ----- top level variables to be referenced in either lex or helpers ----- //
-        [],
+        [
+            [literals, new STRING_LIST_VALUE(cfgLiteralsAsValues)]
+        ],
         // ----- main lex function body ----- //
         Lines.of(
-            t.ret(t.call(_lex(t, str, index), [str, new INT_VALUE(0)]) )
+            t.ret(t.call(_lex(t, str, index, onSpace), [str, new INT_VALUE(0), new BOOLEAN_VALUE(false)]) )
         ),
         // ----- helper functions ----- // 
         [
-            _lex(t, str, index)
+            _next_space_index(t, str, index),
+            _lex(t, str, index, onSpace)
         ]
+    )
+}
+
+/**
+ * A recursive function to grab the index of the next space/end of string. This will be used to evaluate if a token is a
+ * CFG literal token.
+ */
+function _next_space_index(t: GrandLanguageTranslator, str: Var, index: Var): Func {
+    const _next_space_index_call = new Func(INT, '_next_space_index', [str, index], Lines.of())
+    return new Func(
+        INT,
+        '_next_space_index',
+        [str, index],
+        Lines.of(
+            t.if(
+                new Condition(t.length(str), ConditionalOperator.EQUALS, index),
+                Lines.of(
+                    t.ret(index)
+                ),
+                null
+            ),
+            BREAK_LINE,
+            t.if(
+                new Condition(
+                    new Condition(
+                        new Condition(t.access(str, index), ConditionalOperator.EQUALS, _NEWLINE),
+                        ConditionalOperator.OR,
+                        new Condition(t.access(str, index), ConditionalOperator.EQUALS, _RETURN)
+                    ),
+                    ConditionalOperator.OR,
+                    new Condition(
+                        new Condition(t.access(str, index), ConditionalOperator.EQUALS, _SPACE),
+                        ConditionalOperator.OR,
+                        new Condition(t.access(str, index), ConditionalOperator.EQUALS, _TAB),
+                    )
+                ),
+                Lines.of(
+                    t.ret(index)
+                ),
+                null
+            ),
+            BREAK_LINE,
+            t.ret(t.call(_next_space_index_call, [str, t.add(index, new INT_VALUE(1))]))
+        )
     )
 }
 
@@ -37,12 +126,15 @@ function lexerSrc(t: GrandLanguageTranslator): Lines {
  * There is no technical reason to convert the string other than ease of use and better opportunities to avoid loop constructs
  * which would require more definitions
  */
-function _lex(t: GrandLanguageTranslator, str: Var, index: Var): Func {
-    const _lex_call = new Func(TOKEN, '_lex', [str, index], Lines.of())
+function _lex(t: GrandLanguageTranslator, str: Var, index: Var, onSpace: Var): Func {
+    const _lex_call = new Func(TOKEN, '_lex', [str, index, onSpace], Lines.of())
+    const untilSpace = new Var('untilSpace', STRING)
+    const literal = new Var('literal', STRING)
+
     return new Func(
         TOKEN,
         '_lex',
-        [str, index],
+        [str, index, onSpace],
         Lines.of(
             t.if(
                 new Condition(t.length(str), ConditionalOperator.EQUALS, index),
@@ -67,29 +159,49 @@ function _lex(t: GrandLanguageTranslator, str: Var, index: Var): Func {
                     )
                 ),
                 Lines.of(
-                    t.ret(
-                        t.value(
-                            new TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new INT_VALUE(1))]))
+                    t.if(
+                        new Condition(
+                            new Condition(onSpace, ConditionalOperator.EQUALS, new BOOLEAN_VALUE(true)),
+                            ConditionalOperator.OR,
+                            new Condition(index, ConditionalOperator.EQUALS, new INT_VALUE(0))
+                        ),
+                        Lines.of(
+                            t.var(untilSpace, t.substring(str, index, t.call(_next_space_index(t, str, index), [str, index]))),
+                            t.forEach(
+                                literal, 
+                                literals,
+                                Lines.of(
+                                    t.if(
+                                        t.strEquals(literal, untilSpace),
+                                        Lines.of(
+                                            t.ret(
+                                                t.value(new TOKEN_VALUE(untilSpace, t.call(_lex_call, [str, t.add(index, t.length(untilSpace)), new BOOLEAN_VALUE(false)])))
+                                            )
+                                        ),
+                                        null
+                                    )
+                                )
+                            ),
+                            BREAK_LINE,
+                            t.ret(
+                                t.value(new TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new INT_VALUE(1)), new BOOLEAN_VALUE(false)])))
+                            )
+                        ),
+                        Lines.of(
+                            t.ret(
+                                t.value(new TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new INT_VALUE(1)), new BOOLEAN_VALUE(false)])))
+                            )
                         )
                     )
                 ),
                 Lines.of(
                     t.ret(
-                        t.call(_lex_call, [str, t.add(index, new INT_VALUE(1))])
+                        t.call(_lex_call, [str, t.add(index, new INT_VALUE(1)), new BOOLEAN_VALUE(true)])
                     )
                 )
             )
         )
     )
-}
-
-function parserHeader(t: GrandLanguageTranslator, cfg: Cfg): Lines {
-    // Lets not bother with this until C
-    return Lines.of()
-}
-
-function parserSrc(metadata: Metadata, cfg: Cfg, t: GrandLanguageTranslator): Lines {
-    return Lines.of()
 }
 
 export { lexerHeader, lexerSrc, parserHeader, parserSrc }

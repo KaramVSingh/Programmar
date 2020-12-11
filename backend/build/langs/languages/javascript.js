@@ -60,6 +60,14 @@ var Javascript = /** @class */ (function () {
         open.push(new translatorUtils_1.Line('}'));
         return new translatorUtils_1.Lines(open);
     };
+    Javascript.prototype.forEach = function (v, arr, body) {
+        var open = [
+            new translatorUtils_1.Line("for (const " + v.name + " of " + arr.name + ") {"),
+            new translatorUtils_1.TabbedLines([body]),
+            new translatorUtils_1.Line("}")
+        ];
+        return new translatorUtils_1.Lines(open);
+    };
     Javascript.prototype.none = function () { return new translatorUtils_1.Var('null', null); };
     Javascript.prototype.get = function (v, prop) {
         return new translatorUtils_1.Var(v.name + "." + prop.name, prop.type);
@@ -100,6 +108,14 @@ var Javascript = /** @class */ (function () {
     // ----- more complex functions ----- //
     Javascript.prototype.length = function (v) {
         return this.get(v, new translatorUtils_1.Var('length', translatorUtils_1.INT));
+    };
+    Javascript.prototype.substring = function (str, start, end_exclude) {
+        var substr = new translatorUtils_1.Func(translatorUtils_1.STRING, 'substring', [start, end_exclude], translatorUtils_1.Lines.of());
+        var call = this.call(substr, [start, end_exclude]);
+        return this.get(str, call);
+    };
+    Javascript.prototype.strEquals = function (a, b) {
+        return new translatorUtils_1.Condition(a, translatorUtils_1.ConditionalOperator.EQUALS, b);
     };
     // ----- internal ----- //
     Javascript.prototype._condition = function (c) {
@@ -187,6 +203,9 @@ var Javascript = /** @class */ (function () {
             case translatorUtils_1.INT:
                 var convI = v;
                 return new translatorUtils_1.Var("" + convI.value, translatorUtils_1.INT);
+            case translatorUtils_1.BOOLEAN:
+                var convB = v;
+                return new translatorUtils_1.Var("" + convB.value.toString(), translatorUtils_1.BOOLEAN);
             default:
                 throw 'unimplemented';
         }

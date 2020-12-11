@@ -1,6 +1,6 @@
 import { GrandLanguageTranslator } from '../translator'
 import { Cfg } from '../../cfg/cfg'
-import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST, STRING_VALUE, TOKEN_VALUE, INT_VALUE, INT, Condition, ConditionalOperator, Type, CHAR } from '../translatorUtils';
+import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST, STRING_VALUE, TOKEN_VALUE, INT_VALUE, INT, Condition, ConditionalOperator, Type, CHAR, BOOLEAN, BOOLEAN_VALUE } from '../translatorUtils';
 
 class Javascript implements GrandLanguageTranslator {
 
@@ -76,6 +76,16 @@ class Javascript implements GrandLanguageTranslator {
         return new Lines(open)
     }
 
+    forEach(v: Var, arr: Var, body: Lines): Lines {
+        const open = [
+            new Line(`for (const ${v.name} of ${arr.name}) {`),
+            new TabbedLines([body]),
+            new Line(`}`)
+        ]
+
+        return new Lines(open)
+    }
+
     none(): Var { return new Var('null', null) }
 
     get(v: Var, prop: Var): Var {
@@ -120,6 +130,16 @@ class Javascript implements GrandLanguageTranslator {
     // ----- more complex functions ----- //
     length(v: Var): Var {
         return this.get(v, new Var('length', INT))
+    }
+
+    substring(str: Var, start: Var, end_exclude: Var): Var {
+        const substr = new Func(STRING, 'substring', [start, end_exclude], Lines.of())
+        const call = this.call(substr, [start, end_exclude])
+        return this.get(str, call)
+    }
+
+    strEquals(a: Var, b: Var): Condition {
+        return new Condition(a, ConditionalOperator.EQUALS, b)
     }
 
     // ----- internal ----- //
@@ -208,6 +228,9 @@ class Javascript implements GrandLanguageTranslator {
             case INT:
                 const convI = v as INT_VALUE
                 return new Var(`${convI.value}`, INT)
+            case BOOLEAN:
+                const convB = v as BOOLEAN_VALUE
+                return new Var(`${convB.value.toString()}`, BOOLEAN)
             default:
                 throw 'unimplemented'
         }

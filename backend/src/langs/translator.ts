@@ -25,6 +25,8 @@ interface GrandLanguageTranslator {
 
     if: (c: Condition, body: Lines, other: Lines) => Lines
 
+    forEach: (v: Var, arr: Var, body: Lines) => Lines
+
     none: () => Var
 
     get: (v: Var, prop: Var) => Var
@@ -35,6 +37,10 @@ interface GrandLanguageTranslator {
 
     // ----- more complex functions ----- //
     length: (v: Var) => Var
+
+    substring: (str: Var, start: Var, end_exclude: Var) => Var
+
+    strEquals: (a: Var, b: Var) => Condition
 
     // to be used internally, keeping it here to avoid forgetting
     value: (v: Value) => Var

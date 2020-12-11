@@ -90,6 +90,17 @@ class TOKEN_VALUE implements Value {
     }
 }
 
+const BOOLEAN = new Type(BaseType.BOOLEAN, 0)
+class BOOLEAN_VALUE implements Value {
+    value: Boolean
+    type: Type
+
+    constructor(value: Boolean) {
+        this.value = value
+        this.type = BOOLEAN
+    }
+}
+
 const INT = new Type(BaseType.INT, 0)
 class INT_VALUE implements Value {
     value: number
@@ -194,7 +205,7 @@ function getTranslator(lang: SupportedLanguages): GrandLanguageTranslator {
 }
 
 export { 
-    TOKEN, TOKEN_VALUE, INT, INT_VALUE, CHAR, CHAR_VALUE, STRING, STRING_VALUE, STRING_LIST, STRING_LIST_VALUE,
+    TOKEN, TOKEN_VALUE, BOOLEAN, BOOLEAN_VALUE, INT, INT_VALUE, CHAR, CHAR_VALUE, STRING, STRING_VALUE, STRING_LIST, STRING_LIST_VALUE,
     BaseType, Type, Var, Value, Func, ConditionalOperator, Join, Condition, 
     BREAK_LINE, Line, Lines, TabbedLines, 
     SupportedLanguages, getTranslator 
