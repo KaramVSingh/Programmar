@@ -53,6 +53,33 @@ function getCfgLiterals(cfg) {
         .sort(function (a, b) { return b.length - a.length; })
         .filter(function (item, index) { return literals.indexOf(item) === index; });
 }
+function parserHeader(t, cfg) {
+    // Lets not bother with this until C
+    return translatorUtils_1.Lines.of();
+}
+exports.parserHeader = parserHeader;
+function parserSrc(metadata, cfg, t) {
+    // some helper variables
+    var ERROR = new translatorUtils_1.Var('ERROR', translatorUtils_1.AST);
+    var token = new translatorUtils_1.Var('tokens', translatorUtils_1.TOKEN);
+    var parsed = new translatorUtils_1.Var('parsed', translatorUtils_1.AST);
+    // first_rule name
+    var firstRule = metadata.first;
+    // generate functions for each rule
+    var ruleFunctions = cfg.rules.map(function (rule) { return _generate_rule_parser(t, rule, token); });
+    return t.parserSrc([
+        [ERROR, new translatorUtils_1.AST_VALUE(new translatorUtils_1.STRING_VALUE('-ERROR-'), null, null)]
+    ], translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(token, translatorUtils_1.ConditionalOperator.EQUALS, t.none()), translatorUtils_1.Lines.of(t.exit(new translatorUtils_1.STRING_VALUE("Parse Error: Unable to parse empty file."))), translatorUtils_1.Lines.of(t["var"](parsed, t.call(new translatorUtils_1.Func(translatorUtils_1.AST, "_parse_" + firstRule, [token], translatorUtils_1.Lines.of()), [token])), t["if"](new translatorUtils_1.Condition(parsed, translatorUtils_1.ConditionalOperator.EQUALS, ERROR), translatorUtils_1.Lines.of(t.exit(t.get(ERROR, new translatorUtils_1.Var('data', translatorUtils_1.STRING)))), translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(t.get(parsed, new translatorUtils_1.Var('curr', translatorUtils_1.TOKEN)), translatorUtils_1.ConditionalOperator.NOT_EQUALS, t.none()), translatorUtils_1.Lines.of(t.exit(new translatorUtils_1.STRING_VALUE("Parse Error: Unexpected tokens at the end of file."))), translatorUtils_1.Lines.of(t.ret(parsed)))))))), __spread([
+        _lookahead(t, token)
+    ], ruleFunctions));
+}
+exports.parserSrc = parserSrc;
+function _generate_rule_parser(t, r, token) {
+    return new translatorUtils_1.Func(translatorUtils_1.AST, "_parse_" + r.name, [token], translatorUtils_1.Lines.of());
+}
+function _lookahead(t, token) {
+    return new translatorUtils_1.Func(translatorUtils_1.STRING, '_lookahead', [token], translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(token, translatorUtils_1.ConditionalOperator.EQUALS, t.none()), translatorUtils_1.Lines.of(t.ret(token)), translatorUtils_1.Lines.of(t.ret(t.get(token, new translatorUtils_1.Var('curr', translatorUtils_1.STRING)))))));
+}
 function lexerHeader(t) {
     // Lets not bother with this until C
     return translatorUtils_1.Lines.of();
@@ -99,15 +126,6 @@ function _lex(t, str, index, onSpace) {
     var literal = new translatorUtils_1.Var('literal', translatorUtils_1.STRING);
     return new translatorUtils_1.Func(translatorUtils_1.TOKEN, '_lex', [str, index, onSpace], translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(t.length(str), translatorUtils_1.ConditionalOperator.EQUALS, index), translatorUtils_1.Lines.of(t.ret(t.none())), null), translatorUtils_1.BREAK_LINE, t["if"](new translatorUtils_1.Condition(new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _NEWLINE), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _RETURN)), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _SPACE), translatorUtils_1.ConditionalOperator.AND, new translatorUtils_1.Condition(t.access(str, index), translatorUtils_1.ConditionalOperator.NOT_EQUALS, _TAB))), translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(new translatorUtils_1.Condition(onSpace, translatorUtils_1.ConditionalOperator.EQUALS, new translatorUtils_1.BOOLEAN_VALUE(true)), translatorUtils_1.ConditionalOperator.OR, new translatorUtils_1.Condition(index, translatorUtils_1.ConditionalOperator.EQUALS, new translatorUtils_1.INT_VALUE(0))), translatorUtils_1.Lines.of(t["var"](untilSpace, t.substring(str, index, t.call(_next_space_index(t, str, index), [str, index]))), t.forEach(literal, literals, translatorUtils_1.Lines.of(t["if"](t.strEquals(literal, untilSpace), translatorUtils_1.Lines.of(t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(untilSpace, t.call(_lex_call, [str, t.add(index, t.length(untilSpace)), new translatorUtils_1.BOOLEAN_VALUE(false)]))))), null))), translatorUtils_1.BREAK_LINE, t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1)), new translatorUtils_1.BOOLEAN_VALUE(false)]))))), translatorUtils_1.Lines.of(t.ret(t.value(new translatorUtils_1.TOKEN_VALUE(t.access(str, index), t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1)), new translatorUtils_1.BOOLEAN_VALUE(false)]))))))), translatorUtils_1.Lines.of(t.ret(t.call(_lex_call, [str, t.add(index, new translatorUtils_1.INT_VALUE(1)), new translatorUtils_1.BOOLEAN_VALUE(true)]))))));
 }
-function parserHeader(t, cfg) {
-    // Lets not bother with this until C
-    return translatorUtils_1.Lines.of();
-}
-exports.parserHeader = parserHeader;
-function parserSrc(metadata, cfg, t) {
-    return translatorUtils_1.Lines.of();
-}
-exports.parserSrc = parserSrc;
 /*
 const TOKEN_OBJECT: DecoratedType = new DecoratedType(Type.TOKEN, 1)
 const STRING_ARRAY: DecoratedType = new DecoratedType(Type.CHAR, 2)

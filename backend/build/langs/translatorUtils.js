@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
-exports.getTranslator = exports.SupportedLanguages = exports.TabbedLines = exports.Lines = exports.Line = exports.BREAK_LINE = exports.Condition = exports.Join = exports.ConditionalOperator = exports.Func = exports.Var = exports.Type = exports.BaseType = exports.STRING_LIST_VALUE = exports.STRING_LIST = exports.STRING_VALUE = exports.STRING = exports.CHAR_VALUE = exports.CHAR = exports.INT_VALUE = exports.INT = exports.BOOLEAN_VALUE = exports.BOOLEAN = exports.TOKEN_VALUE = exports.TOKEN = void 0;
+exports.getTranslator = exports.SupportedLanguages = exports.TabbedLines = exports.Lines = exports.Line = exports.BREAK_LINE = exports.Condition = exports.Join = exports.ConditionalOperator = exports.Func = exports.Var = exports.Type = exports.BaseType = exports.STRING_LIST_VALUE = exports.STRING_LIST = exports.STRING_VALUE = exports.STRING = exports.CHAR_VALUE = exports.CHAR = exports.AST_LIST_VALUE = exports.AST_LIST = exports.AST_VALUE = exports.AST = exports.INT_VALUE = exports.INT = exports.BOOLEAN_VALUE = exports.BOOLEAN = exports.TOKEN_VALUE = exports.TOKEN = void 0;
 var javascript_1 = require("./languages/javascript");
 // ----- We're gonna do some hardcore meta programming so lets define some basics ----- //
 var BaseType;
@@ -91,6 +91,29 @@ var TOKEN_VALUE = /** @class */ (function () {
     return TOKEN_VALUE;
 }());
 exports.TOKEN_VALUE = TOKEN_VALUE;
+var AST = new Type(BaseType.AST, 1);
+exports.AST = AST;
+var AST_VALUE = /** @class */ (function () {
+    function AST_VALUE(rule, data, token) {
+        this.rule = rule;
+        this.data = data;
+        this.token = token;
+        this.children = new AST_LIST_VALUE([]);
+        this.type = AST;
+    }
+    return AST_VALUE;
+}());
+exports.AST_VALUE = AST_VALUE;
+var AST_LIST = new Type(BaseType.AST, 2);
+exports.AST_LIST = AST_LIST;
+var AST_LIST_VALUE = /** @class */ (function () {
+    function AST_LIST_VALUE(list) {
+        this.list = list;
+        this.type = AST_LIST;
+    }
+    return AST_LIST_VALUE;
+}());
+exports.AST_LIST_VALUE = AST_LIST_VALUE;
 var BOOLEAN = new Type(BaseType.BOOLEAN, 0);
 exports.BOOLEAN = BOOLEAN;
 var BOOLEAN_VALUE = /** @class */ (function () {

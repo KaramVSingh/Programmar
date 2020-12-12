@@ -1,6 +1,6 @@
-import { Cfg, StatementType, Statement, Range } from '../cfg/cfg'
+import { Cfg, StatementType, Statement, Range, Rule } from '../cfg/cfg'
 import { GrandLanguageTranslator } from './translator'
-import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, TOKEN, STRING_VALUE, TOKEN_VALUE, Func, STRING, INT, INT_VALUE, Condition, ConditionalOperator, BREAK_LINE, BOOLEAN_VALUE } from './translatorUtils'
+import { Var, Lines, STRING_LIST, STRING_LIST_VALUE, TOKEN, STRING_VALUE, TOKEN_VALUE, Func, STRING, INT, INT_VALUE, Condition, ConditionalOperator, BREAK_LINE, BOOLEAN_VALUE, AST, AST_VALUE } from './translatorUtils'
 import { Metadata } from './../app/app'
 
 // common variable to grab all whitespace options
@@ -42,7 +42,84 @@ function parserHeader(t: GrandLanguageTranslator, cfg: Cfg): Lines {
 }
 
 function parserSrc(metadata: Metadata, cfg: Cfg, t: GrandLanguageTranslator): Lines {
-    return Lines.of()
+    // some helper variables
+    const ERROR = new Var('ERROR', AST)
+    const token = new Var('tokens', TOKEN)
+    const parsed = new Var('parsed', AST)
+
+    // first_rule name
+    const firstRule = metadata.first
+
+    // generate functions for each rule
+    const ruleFunctions = cfg.rules.map(rule => _generate_rule_parser(t, rule, token))
+
+    return t.parserSrc(
+        [
+            [ERROR, new AST_VALUE(new STRING_VALUE('-ERROR-'), null, null)]
+        ],
+        Lines.of(
+            t.if(
+                new Condition(token, ConditionalOperator.EQUALS, t.none()),
+                Lines.of(
+                    t.exit(new STRING_VALUE("Parse Error: Unable to parse empty file."))
+                ),
+                Lines.of(
+                    t.var(parsed, t.call(new Func(AST, `_parse_${firstRule}`, [token], Lines.of()), [token])),
+                    t.if(
+                        new Condition(parsed, ConditionalOperator.EQUALS, ERROR),
+                        Lines.of(
+                            t.exit(t.get(ERROR, new Var('data', STRING)))
+                        ),
+                        Lines.of(
+                            t.if(
+                                new Condition(t.get(parsed, new Var('curr', TOKEN)), ConditionalOperator.NOT_EQUALS, t.none()),
+                                Lines.of(
+                                    t.exit(new STRING_VALUE("Parse Error: Unexpected tokens at the end of file."))
+                                ),
+                                Lines.of(
+                                    t.ret(parsed)
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+        [
+            _lookahead(t, token),
+            ...ruleFunctions
+        ]
+    )
+}
+
+function _generate_rule_parser(t: GrandLanguageTranslator, r: Rule, token: Var): Func {
+    return new Func(
+        AST,
+        `_parse_${r.name}`,
+        [token],
+        Lines.of(
+            
+        )
+    )
+}
+
+function _lookahead(t: GrandLanguageTranslator, token: Var): Func {
+    return new Func(
+        STRING,
+        '_lookahead',
+        [token],
+        Lines.of(
+            t.if(
+                new Condition(token, ConditionalOperator.EQUALS, t.none()),
+                Lines.of(
+                    t.ret(token)
+                ),
+                Lines.of(
+                    t.ret(t.get(token, new Var('curr', STRING)))
+                )
+            )
+        )
+    )
 }
 
 function lexerHeader(t: GrandLanguageTranslator): Lines {

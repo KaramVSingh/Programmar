@@ -90,6 +90,34 @@ class TOKEN_VALUE implements Value {
     }
 }
 
+const AST = new Type(BaseType.AST, 1)
+class AST_VALUE implements Value {
+    rule: STRING_VALUE|Var
+    data: STRING_VALUE|Var
+    token: TOKEN_VALUE|Var
+    children: AST_LIST_VALUE|Var
+    type: Type
+
+    constructor(rule: STRING_VALUE|Var, data: STRING_VALUE|Var, token: TOKEN_VALUE|Var) {
+        this.rule = rule
+        this.data = data
+        this.token = token
+        this.children = new AST_LIST_VALUE([])
+        this.type = AST
+    }
+}
+
+const AST_LIST = new Type(BaseType.AST, 2)
+class AST_LIST_VALUE implements Value {
+    list: AST_VALUE[]|Var
+    type: Type
+
+    constructor(list: AST_VALUE[]|Var) {
+        this.list = list
+        this.type = AST_LIST
+    }
+}
+
 const BOOLEAN = new Type(BaseType.BOOLEAN, 0)
 class BOOLEAN_VALUE implements Value {
     value: Boolean
@@ -205,7 +233,8 @@ function getTranslator(lang: SupportedLanguages): GrandLanguageTranslator {
 }
 
 export { 
-    TOKEN, TOKEN_VALUE, BOOLEAN, BOOLEAN_VALUE, INT, INT_VALUE, CHAR, CHAR_VALUE, STRING, STRING_VALUE, STRING_LIST, STRING_LIST_VALUE,
+    TOKEN, TOKEN_VALUE, BOOLEAN, BOOLEAN_VALUE, INT, INT_VALUE, 
+    AST, AST_VALUE, AST_LIST, AST_LIST_VALUE, CHAR, CHAR_VALUE, STRING, STRING_VALUE, STRING_LIST, STRING_LIST_VALUE,
     BaseType, Type, Var, Value, Func, ConditionalOperator, Join, Condition, 
     BREAK_LINE, Line, Lines, TabbedLines, 
     SupportedLanguages, getTranslator 

@@ -1,5 +1,5 @@
 import { Cfg } from '../cfg/cfg'
-import { Lines, Var, Func, Line, Value, Condition, INT_VALUE } from './translatorUtils';
+import { Lines, Var, Func, Line, Value, Condition, INT_VALUE, STRING_VALUE } from './translatorUtils';
 
 interface GrandLanguageTranslator {
 
@@ -13,6 +13,12 @@ interface GrandLanguageTranslator {
      * @returns Lines representing the entire lexer, lang specific details included
      */
     lexerSrc: (consts: [Var, Value][], lexer: Lines, functions: Func[]) => Lines
+
+    /**
+     * This function will abstract language specific details before and after the parser.
+     * This will also describe helper functions like lookahead and matchToken
+     */
+    parserSrc: (consts: [Var, Value][], parser: Lines, functions: Func[]) => Lines
 
     // ----- Language specifics ----- //
     var: (v: Var, preset: Value | Var) => Line
@@ -34,6 +40,8 @@ interface GrandLanguageTranslator {
     access: (v: Var, index: INT_VALUE|Var) => Var
 
     add: (a: INT_VALUE|Var, b: INT_VALUE|Var) => Var
+
+    exit: (m: STRING_VALUE|Var) => Line
 
     // ----- more complex functions ----- //
     length: (v: Var) => Var

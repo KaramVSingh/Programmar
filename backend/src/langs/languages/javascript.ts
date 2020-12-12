@@ -1,6 +1,6 @@
 import { GrandLanguageTranslator } from '../translator'
 import { Cfg } from '../../cfg/cfg'
-import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST, STRING_VALUE, TOKEN_VALUE, INT_VALUE, INT, Condition, ConditionalOperator, Type, CHAR, BOOLEAN, BOOLEAN_VALUE } from '../translatorUtils';
+import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST, STRING_VALUE, TOKEN_VALUE, INT_VALUE, INT, Condition, ConditionalOperator, Type, CHAR, BOOLEAN, BOOLEAN_VALUE, AST_VALUE, AST } from '../translatorUtils';
 
 class Javascript implements GrandLanguageTranslator {
 
@@ -17,6 +17,22 @@ class Javascript implements GrandLanguageTranslator {
             BREAK_LINE,
             // lex function
             this.func(lexFunction),
+            // helper functions
+            new Lines(functionLines)
+        )
+    }
+
+    parserSrc(consts: [Var, Value][], body: Lines, functions: Func[]): Lines {
+        const constLines = consts.map(c => this.var(c[0], c[1]))
+        const parseFunction = new Func(AST, 'parse', [new Var('tokens', TOKEN)], body)
+        const functionLines = functions.map(f => this.func(f))
+
+        return Lines.of(
+            // top level variable declarations
+            new Lines(constLines),
+            BREAK_LINE,
+            // lex function
+            this.func(parseFunction),
             // helper functions
             new Lines(functionLines)
         )
@@ -127,6 +143,14 @@ class Javascript implements GrandLanguageTranslator {
         }
     }
 
+    exit(m: STRING_VALUE|Var): Line {
+        if (m instanceof Var) {
+            return new Line(`throw ${m.name}`)
+        } else {
+            return new Line(`throw ${this.value(m).name}`)
+        }
+    }
+
     // ----- more complex functions ----- //
     length(v: Var): Var {
         return this.get(v, new Var('length', INT))
@@ -208,6 +232,30 @@ class Javascript implements GrandLanguageTranslator {
             case STRING:
                 const convS = v as STRING_VALUE
                 return new Var(`'${convS.value}'`, STRING)
+            case AST:
+                const convA = v as AST_VALUE
+                let rule: String
+                if (convA.rule instanceof Var) {
+                    rule = convA.rule.name
+                } else {
+                    rule = this.value(convA.rule).name
+                }
+
+                let data: String
+                if (convA.data instanceof Var) {
+                    data = convA.data.name
+                } else {
+                    data = this.value(convA.data).name
+                }
+
+                let token: String
+                if (convA.token instanceof Var) {
+                    token = convA.token.name
+                } else {
+                    token = this.value(convA.token).name
+                }
+
+                return new Var(`{ 'rule': ${rule}, 'data': ${data}, 'token': ${token}, 'children: [] }`, AST)
             case TOKEN:
                 const convT = v as TOKEN_VALUE
                 let curr: string

@@ -19,6 +19,19 @@ var Javascript = /** @class */ (function () {
         // helper functions
         new translatorUtils_1.Lines(functionLines));
     };
+    Javascript.prototype.parserSrc = function (consts, body, functions) {
+        var _this = this;
+        var constLines = consts.map(function (c) { return _this["var"](c[0], c[1]); });
+        var parseFunction = new translatorUtils_1.Func(translatorUtils_1.AST, 'parse', [new translatorUtils_1.Var('tokens', translatorUtils_1.TOKEN)], body);
+        var functionLines = functions.map(function (f) { return _this.func(f); });
+        return translatorUtils_1.Lines.of(
+        // top level variable declarations
+        new translatorUtils_1.Lines(constLines), translatorUtils_1.BREAK_LINE, 
+        // lex function
+        this.func(parseFunction), 
+        // helper functions
+        new translatorUtils_1.Lines(functionLines));
+    };
     // ----- language specifics ----- //
     Javascript.prototype["var"] = function (variable, value) {
         if (value instanceof translatorUtils_1.Var) {
@@ -105,6 +118,14 @@ var Javascript = /** @class */ (function () {
             return new translatorUtils_1.Var(v.name + "[" + index.value + "]", newType);
         }
     };
+    Javascript.prototype.exit = function (m) {
+        if (m instanceof translatorUtils_1.Var) {
+            return new translatorUtils_1.Line("throw " + m.name);
+        }
+        else {
+            return new translatorUtils_1.Line("throw " + this.value(m).name);
+        }
+    };
     // ----- more complex functions ----- //
     Javascript.prototype.length = function (v) {
         return this.get(v, new translatorUtils_1.Var('length', translatorUtils_1.INT));
@@ -183,6 +204,30 @@ var Javascript = /** @class */ (function () {
             case translatorUtils_1.STRING:
                 var convS = v;
                 return new translatorUtils_1.Var("'" + convS.value + "'", translatorUtils_1.STRING);
+            case translatorUtils_1.AST:
+                var convA = v;
+                var rule = void 0;
+                if (convA.rule instanceof translatorUtils_1.Var) {
+                    rule = convA.rule.name;
+                }
+                else {
+                    rule = this.value(convA.rule).name;
+                }
+                var data = void 0;
+                if (convA.data instanceof translatorUtils_1.Var) {
+                    data = convA.data.name;
+                }
+                else {
+                    data = this.value(convA.data).name;
+                }
+                var token = void 0;
+                if (convA.token instanceof translatorUtils_1.Var) {
+                    token = convA.token.name;
+                }
+                else {
+                    token = this.value(convA.token).name;
+                }
+                return new translatorUtils_1.Var("{ 'rule': " + rule + ", 'data': " + data + ", 'token': " + token + ", 'children: [] }", translatorUtils_1.AST);
             case translatorUtils_1.TOKEN:
                 var convT = v;
                 var curr = void 0;
