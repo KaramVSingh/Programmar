@@ -7,20 +7,24 @@ var res = app_1.entrypoint({
     input: new input_1.Input({
         'rules': [
             {
-                'name': 'a',
+                'name': 'string',
                 'type': input_1.InputRuleType.RULE,
                 'is': [
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '+' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '-' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '==' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '<=>' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'number' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': '=' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'number' } ],
+                    [ { 'type': input_1.InputStatementType.LITERAL, 'ref': 'y' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'part' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': 'y' } ]
                 ]
             },
             {
-                'name': 'number',
+                'name': 'part',
+                'type': input_1.InputRuleType.RULE,
+                'is': [
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'data' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'part' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'data' } ],
+                ]
+            },
+            {
+                'name': 'data',
                 'type': input_1.InputRuleType.REGEX,
-                'is': '[0-9]+'
+                'is': '[^y]*'
             }
         ]
     }),
@@ -28,7 +32,7 @@ var res = app_1.entrypoint({
         'ignoreWhitespace': true,
         'language': translatorUtils_1.SupportedLanguages.JAVASCRIPT,
         'name': 'testlang',
-        'first': 'a'
+        'first': 'string'
     }
 });
 res.then(function (val) {

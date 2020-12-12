@@ -298,7 +298,12 @@ class Javascript implements GrandLanguageTranslator {
                 return new Var(`[${stringValues.join(', ')}]`, STRING_LIST)
             case STRING:
                 const convS = v as STRING_VALUE
-                return new Var(`'${convS.value}'`, STRING)
+                const normalized = convS.value
+                    .replace(/\t/g, "\\t")
+                    .replace(/\n/g, "\\n")
+                    .replace(/\r/g, "\\r")
+
+                return new Var(`'${normalized}'`, STRING)
             case AST_LIST:
                 const convAL = v as AST_LIST_VALUE
                 return new Var(`[]`, AST_LIST)

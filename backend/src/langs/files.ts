@@ -253,7 +253,12 @@ function _generate_rule_parser(t: GrandLanguageTranslator, r: Rule, token: Var):
     const children = new Var('children', AST_LIST)
     const data = new Var('data', STRING)
 
-    const options = r.is.map(optn => {
+    const noEmpty = r.is
+        .sort((a: Statement[], b: Statement[]) => a.length - b.length)
+        .filter((a: Statement[]) => a.length > 0)
+
+    const tackedOn = noEmpty.length === r.is.length ? noEmpty : noEmpty.concat([[]])
+    const options = tackedOn.map(optn => {
         return option(t, optn, r.name, ERROR, result, token, curr, children, data)
     })
 

@@ -266,7 +266,11 @@ var Javascript = /** @class */ (function () {
                 return new translatorUtils_1.Var("[" + stringValues.join(', ') + "]", translatorUtils_1.STRING_LIST);
             case translatorUtils_1.STRING:
                 var convS = v;
-                return new translatorUtils_1.Var("'" + convS.value + "'", translatorUtils_1.STRING);
+                var normalized = convS.value
+                    .replace(/\t/g, "\\t")
+                    .replace(/\n/g, "\\n")
+                    .replace(/\r/g, "\\r");
+                return new translatorUtils_1.Var("'" + normalized + "'", translatorUtils_1.STRING);
             case translatorUtils_1.AST_LIST:
                 var convAL = v;
                 return new translatorUtils_1.Var("[]", translatorUtils_1.AST_LIST);
