@@ -23,6 +23,7 @@ var BaseType;
     BaseType[BaseType["INT"] = 2] = "INT";
     BaseType[BaseType["CHAR"] = 3] = "CHAR";
     BaseType[BaseType["BOOLEAN"] = 4] = "BOOLEAN";
+    BaseType[BaseType["RANGE"] = 5] = "RANGE";
 })(BaseType || (BaseType = {}));
 exports.BaseType = BaseType;
 var Type = /** @class */ (function () {
@@ -94,11 +95,11 @@ exports.TOKEN_VALUE = TOKEN_VALUE;
 var AST = new Type(BaseType.AST, 1);
 exports.AST = AST;
 var AST_VALUE = /** @class */ (function () {
-    function AST_VALUE(rule, data, token) {
+    function AST_VALUE(rule, data, token, children) {
         this.rule = rule;
         this.data = data;
         this.token = token;
-        this.children = new AST_LIST_VALUE([]);
+        this.children = children;
         this.type = AST;
     }
     return AST_VALUE;

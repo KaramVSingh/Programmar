@@ -1,5 +1,5 @@
 import { Cfg } from '../cfg/cfg'
-import { Lines, Var, Func, Line, Value, Condition, INT_VALUE, STRING_VALUE } from './translatorUtils';
+import { Lines, Var, Func, Line, Value, Condition, INT_VALUE, STRING_VALUE, AST_LIST_VALUE, AST_VALUE, CHAR_VALUE } from './translatorUtils';
 
 interface GrandLanguageTranslator {
 
@@ -23,6 +23,8 @@ interface GrandLanguageTranslator {
     // ----- Language specifics ----- //
     var: (v: Var, preset: Value | Var) => Line
 
+    set: (variable: Var, value: Value|Var) => Line
+
     func: (f: Func) => Lines
 
     call: (f: Func, args: (Var|Value)[]) => Var
@@ -41,6 +43,8 @@ interface GrandLanguageTranslator {
 
     add: (a: INT_VALUE|Var, b: INT_VALUE|Var) => Var
 
+    sub: (a: INT_VALUE|Var, b: INT_VALUE|Var) => Var
+
     exit: (m: STRING_VALUE|Var) => Line
 
     // ----- more complex functions ----- //
@@ -48,7 +52,13 @@ interface GrandLanguageTranslator {
 
     substring: (str: Var, start: Var, end_exclude: Var) => Var
 
-    strEquals: (a: Var, b: Var) => Condition
+    strEquals: (a: Var, b: STRING_VALUE|Var) => Condition
+
+    strAdd: (a: STRING_VALUE|Var, b: STRING_VALUE|Var) => Var
+
+    pushAstArray: (arr: Var, v: AST_VALUE|Var) => Line
+
+    getCharCode: (a: CHAR_VALUE|Var) => Var
 
     // to be used internally, keeping it here to avoid forgetting
     value: (v: Value) => Var

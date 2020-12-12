@@ -7,7 +7,8 @@ enum BaseType {
     AST,
     INT,
     CHAR,
-    BOOLEAN
+    BOOLEAN,
+    RANGE
 }
 
 class Type {
@@ -98,11 +99,11 @@ class AST_VALUE implements Value {
     children: AST_LIST_VALUE|Var
     type: Type
 
-    constructor(rule: STRING_VALUE|Var, data: STRING_VALUE|Var, token: TOKEN_VALUE|Var) {
+    constructor(rule: STRING_VALUE|Var, data: STRING_VALUE|Var, token: TOKEN_VALUE|Var, children: AST_LIST_VALUE|Var) {
         this.rule = rule
         this.data = data
         this.token = token
-        this.children = new AST_LIST_VALUE([])
+        this.children = children
         this.type = AST
     }
 }
@@ -233,7 +234,7 @@ function getTranslator(lang: SupportedLanguages): GrandLanguageTranslator {
 }
 
 export { 
-    TOKEN, TOKEN_VALUE, BOOLEAN, BOOLEAN_VALUE, INT, INT_VALUE, 
+    TOKEN, TOKEN_VALUE, BOOLEAN, BOOLEAN_VALUE, INT, INT_VALUE,
     AST, AST_VALUE, AST_LIST, AST_LIST_VALUE, CHAR, CHAR_VALUE, STRING, STRING_VALUE, STRING_LIST, STRING_LIST_VALUE,
     BaseType, Type, Var, Value, Func, ConditionalOperator, Join, Condition, 
     BREAK_LINE, Line, Lines, TabbedLines, 

@@ -1,6 +1,6 @@
 import { GrandLanguageTranslator } from '../translator'
 import { Cfg } from '../../cfg/cfg'
-import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST, STRING_VALUE, TOKEN_VALUE, INT_VALUE, INT, Condition, ConditionalOperator, Type, CHAR, BOOLEAN, BOOLEAN_VALUE, AST_VALUE, AST } from '../translatorUtils';
+import { Lines, BREAK_LINE, Var, Func, Line, Value, TabbedLines, TOKEN, STRING, STRING_LIST_VALUE, STRING_LIST, STRING_VALUE, TOKEN_VALUE, INT_VALUE, INT, Condition, ConditionalOperator, Type, CHAR, BOOLEAN, BOOLEAN_VALUE, AST_VALUE, AST, AST_LIST, AST_LIST_VALUE, CHAR_VALUE } from '../translatorUtils';
 
 class Javascript implements GrandLanguageTranslator {
 
@@ -46,6 +46,15 @@ class Javascript implements GrandLanguageTranslator {
             return new Line(`let ${variable.name} = ${v.name}`)
         } else {
             return new Line(`let ${variable.name} = ${this.value(value).name}`)
+        }
+    }
+
+    set(variable: Var, value: Value|Var): Line {
+        if (value instanceof Var) {
+            const v = value as Var
+            return new Line(`${variable.name} = ${v.name}`)
+        } else {
+            return new Line(`${variable.name} = ${this.value(value).name}`)
         }
     }
 
@@ -126,6 +135,24 @@ class Javascript implements GrandLanguageTranslator {
         return new Var(`(${aConv} + ${bConv})`, INT)
     }
 
+    sub(a: INT_VALUE|Var, b: INT_VALUE|Var): Var {
+        let aConv: string
+        if (a instanceof Var) {
+            aConv = a.name
+        } else {
+            aConv = a.value.toString()
+        }
+
+        let bConv: string
+        if (b instanceof Var) {
+            bConv = b.name
+        } else {
+            bConv = b.value.toString()
+        }
+
+        return new Var(`(${aConv} - ${bConv})`, INT)
+    }
+
     access(v: Var, index: INT_VALUE|Var): Var {
         let newType: Type
         switch(v.type) {
@@ -162,8 +189,48 @@ class Javascript implements GrandLanguageTranslator {
         return this.get(str, call)
     }
 
-    strEquals(a: Var, b: Var): Condition {
+    strEquals(a: Var, b: STRING_VALUE|Var): Condition {
         return new Condition(a, ConditionalOperator.EQUALS, b)
+    }
+
+    strAdd(a: STRING_VALUE|Var, b: STRING_VALUE|Var): Var {
+        let a1: string
+        if (a instanceof Var) {
+            a1 = a.name
+        } else {
+            a1 = this.value(a).name
+        }
+
+        let b1: string
+        if (b instanceof Var) {
+            b1 = b.name
+        } else {
+            b1 = this.value(b).name
+        }
+
+        return new Var(`${a1} + ${b1}`, STRING)
+    }
+
+    pushAstArray(arr: Var, v: AST_VALUE|Var): Line {
+        let asVar: Var
+        if (v instanceof Var) {
+            asVar = v
+        } else {
+            this.value(v)
+        }
+
+        return new Line(`${arr.name}.push(${asVar.name})`)
+    }
+
+    getCharCode(a: CHAR_VALUE|Var): Var {
+        let asVar: Var
+        if (a instanceof Var) {
+            asVar = a
+        } else {
+            asVar = this.value(a)
+        }
+
+        return this.get(asVar, new Var(`charCodeAt(0)`, INT))
     }
 
     // ----- internal ----- //
@@ -232,30 +299,40 @@ class Javascript implements GrandLanguageTranslator {
             case STRING:
                 const convS = v as STRING_VALUE
                 return new Var(`'${convS.value}'`, STRING)
+            case AST_LIST:
+                const convAL = v as AST_LIST_VALUE
+                return new Var(`[]`, AST_LIST)
             case AST:
                 const convA = v as AST_VALUE
-                let rule: String
+                let rule: string
                 if (convA.rule instanceof Var) {
                     rule = convA.rule.name
                 } else {
                     rule = this.value(convA.rule).name
                 }
 
-                let data: String
+                let data: string
                 if (convA.data instanceof Var) {
                     data = convA.data.name
                 } else {
                     data = this.value(convA.data).name
                 }
 
-                let token: String
+                let token: string
                 if (convA.token instanceof Var) {
                     token = convA.token.name
                 } else {
                     token = this.value(convA.token).name
                 }
 
-                return new Var(`{ 'rule': ${rule}, 'data': ${data}, 'token': ${token}, 'children: [] }`, AST)
+                let children: string
+                if (convA.children instanceof Var) {
+                    children = convA.children.name
+                } else {
+                    token = this.value(convA.children).name
+                }
+
+                return new Var(`{ 'rule': ${rule}, 'data': ${data}, 'token': ${token}, 'children': ${children} }`, AST)
             case TOKEN:
                 const convT = v as TOKEN_VALUE
                 let curr: string
