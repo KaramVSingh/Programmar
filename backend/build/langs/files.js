@@ -133,10 +133,7 @@ function _generate_rule_parser(t, r, token) {
     var noEmpty = r.is
         .sort(function (a, b) { return a.length - b.length; })
         .filter(function (a) { return a.length > 0; });
-    console.log(r.is.length);
-    console.log(noEmpty.length);
     var tackedOn = noEmpty.length === r.is.length ? noEmpty : noEmpty.concat([[]]);
-    console.log(tackedOn);
     var options = tackedOn.map(function (optn) {
         return option(t, optn, r.name, ERROR, result, token, curr, children, data);
     });

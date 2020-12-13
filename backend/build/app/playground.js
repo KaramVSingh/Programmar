@@ -23,8 +23,8 @@ var res = app_1.entrypoint({
             },
             {
                 'name': 'data',
-                'type': input_1.InputRuleType.REGEX,
-                'is': '[^y]*'
+                'type': input_1.InputRuleType.RULE,
+                'is': [ [{'type': input_1.InputStatementType.RULE, 'ref': 'string' }] ]
             }
         ]
     }),
@@ -36,6 +36,7 @@ var res = app_1.entrypoint({
     }
 });
 res.then(function (val) {
+    console.log(val.body)
     console.log(val.body.lexer.source)
     console.log(val.body.parser.source)
 });

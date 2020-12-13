@@ -68,23 +68,59 @@ class Input {
         // Because we are adding exceptions for control flow to help widen the number of grammars we can support, we do
         // not need to check for overlapping first sets. The only thing we need to check for is infinite left recursion
         // DO: traverse all paths and check if the path recycles
-        for(let [key] of firsts) {
-            Input.checkPath(firsts, new Set<string>([key]), key)
+        const ruleMap: Map<string, string[][]> = new Map()
+        input.rules.forEach(rule => {
+            if(rule.type === InputRuleType.RULE) {
+                const options = (rule.is as InputStatement[][]).map(option => {
+                    return option
+                        .filter(part => part.type === InputStatementType.RULE)
+                        .map(part => part.ref)
+                })
+
+                ruleMap.set(rule.name, options)
+            } else {
+                ruleMap.set(rule.name, [])
+            }
+        })
+
+        for(let [name] of ruleMap) {
+            Input.checkSafety(name, ruleMap)
         }
     }
 
-    private static checkPath(firsts: Map<string, string[]>, path: Set<string>, curr: string) {
-        const next: string[] = firsts.get(curr)
-        for(let rule of next) {
-            if(path.has(rule)) {
-                path.add(rule)
-                throw `Illegal Argument: Path containing ${Array.from(path)} has left recursion error.`
-            } else {
-                const nPath: Set<string> = new Set(path)
-                nPath.add(rule)
-                Input.checkPath(firsts, nPath, rule)
+    private static checkSafety(ruleName: string, ruleMap: Map<string, string[][]>) {
+        // we want to do a traversal of the options, if all of the options have to loop back, we have an issue, otherwise we're safe
+        ruleMap.get(ruleName).forEach(option => {
+            if(Input._only_loops(ruleName, option[0], [], ruleMap)) {
+                throw `Illegal Argument: Rule ${ruleName} contains a left recursion error.` 
             }
+        })
+    }
+
+    private static _only_loops(startRule: string, currRule: string, path: string[], ruleMap: Map<string, string[][]>): Boolean {
+        if (currRule === startRule) {
+            return true
         }
+
+        if (path.includes(currRule)) { 
+            return true 
+        }
+
+        const newPath = path.concat(currRule)
+
+        const ruleLoops: Boolean[] = []
+        for(let option of ruleMap.get(currRule)) {
+            // [false, true], [false]
+            const optionLoops: Boolean[] = []
+            for(let ruleRef of option) {
+                optionLoops.push(Input._only_loops(startRule, ruleRef, newPath, ruleMap))
+            }
+
+            // if any rule_refs in an option loop, then the option loops
+            ruleLoops.push(optionLoops.reduce((acc: Boolean, curr: Boolean) => { return acc || curr }, false))
+        }
+
+        if (ruleLoops.filter(option => option === false).length > 0 || ruleLoops.length === 0) { return false } else { return true }
     }
 }
 

@@ -60,7 +60,7 @@ var Input = /** @class */ (function () {
      * 3. Valid CFG
      */
     Input.validate = function (input) {
-        var e_1, _a;
+        var e_1, _a, e_2, _b;
         var names = new Set();
         var firsts = new Map();
         // validate all the rules
@@ -93,26 +93,107 @@ var Input = /** @class */ (function () {
                 }
             }
         }
+        // validate that the CFG is valid
+        // Because we are adding exceptions for control flow to help widen the number of grammars we can support, we do
+        // not need to check for overlapping first sets. The only thing we need to check for is infinite left recursion
+        // DO: traverse all paths and check if the path recycles
+        var ruleMap = new Map();
+        input.rules.forEach(function (rule) {
+            if (rule.type === InputRuleType.RULE) {
+                var options = rule.is.map(function (option) {
+                    return option
+                        .filter(function (part) { return part.type === InputStatementType.RULE; })
+                        .map(function (part) { return part.ref; });
+                });
+                ruleMap.set(rule.name, options);
+            }
+            else {
+                ruleMap.set(rule.name, []);
+            }
+        });
         try {
-            // validate that the CFG is valid
-            // Because we are adding exceptions for control flow to help widen the number of grammars we can support, we do
-            // not need to check for overlapping first sets. The only thing we need to check for is infinite left recursion
-            // DO: traverse all paths and check if the path recycles
-            for (var firsts_1 = __values(firsts), firsts_1_1 = firsts_1.next(); !firsts_1_1.done; firsts_1_1 = firsts_1.next()) {
-                var _b = __read(firsts_1_1.value, 1), key = _b[0];
-                Input.checkPath(firsts, new Set([key]), key);
+            for (var ruleMap_1 = __values(ruleMap), ruleMap_1_1 = ruleMap_1.next(); !ruleMap_1_1.done; ruleMap_1_1 = ruleMap_1.next()) {
+                var _c = __read(ruleMap_1_1.value, 1), name_1 = _c[0];
+                Input.checkSafety(name_1, ruleMap);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (firsts_1_1 && !firsts_1_1.done && (_a = firsts_1["return"])) _a.call(firsts_1);
+                if (ruleMap_1_1 && !ruleMap_1_1.done && (_a = ruleMap_1["return"])) _a.call(ruleMap_1);
             }
             finally { if (e_1) throw e_1.error; }
         }
+        try {
+            for (var firsts_1 = __values(firsts), firsts_1_1 = firsts_1.next(); !firsts_1_1.done; firsts_1_1 = firsts_1.next()) {
+                var _d = __read(firsts_1_1.value, 1), key = _d[0];
+                Input.checkPath(firsts, new Set([key]), key);
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (firsts_1_1 && !firsts_1_1.done && (_b = firsts_1["return"])) _b.call(firsts_1);
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+    };
+    Input.checkSafety = function (ruleName, ruleMap) {
+        // we want to do a traversal of the options, if all of the options have to loop back, we have an issue, otherwise we're safe
+        ruleMap.get(ruleName).forEach(function (option) {
+            if (Input._only_loops(ruleName, option[0], [], ruleMap)) {
+                throw "Illegal Argument: Rule " + ruleName + " contains a left recursion error.";
+            }
+        });
+    };
+    Input._only_loops = function (startRule, currRule, path, ruleMap) {
+        var e_3, _a, e_4, _b;
+        if (currRule === startRule) {
+            return true;
+        }
+        if (path.includes(currRule)) {
+            return true;
+        }
+        var newPath = path.concat(currRule);
+        var ruleLoops = [];
+        try {
+            for (var _c = __values(ruleMap.get(currRule)), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var option = _d.value;
+                // [false, true], [false]
+                var optionLoops = [];
+                try {
+                    for (var option_1 = (e_4 = void 0, __values(option)), option_1_1 = option_1.next(); !option_1_1.done; option_1_1 = option_1.next()) {
+                        var ruleRef = option_1_1.value;
+                        optionLoops.push(Input._only_loops(startRule, ruleRef, newPath, ruleMap));
+                    }
+                }
+                catch (e_4_1) { e_4 = { error: e_4_1 }; }
+                finally {
+                    try {
+                        if (option_1_1 && !option_1_1.done && (_b = option_1["return"])) _b.call(option_1);
+                    }
+                    finally { if (e_4) throw e_4.error; }
+                }
+                // if any rule_refs in an option loop, then the option loops
+                ruleLoops.push(optionLoops.reduce(function (acc, curr) { return acc || curr; }, false));
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c["return"])) _a.call(_c);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        if (ruleLoops.filter(function (option) { return option === false; }).length > 0 || ruleLoops.length === 0) {
+            return false;
+        }
+        else {
+            return true;
+        }
     };
     Input.checkPath = function (firsts, path, curr) {
-        var e_2, _a;
+        var e_5, _a;
         var next = firsts.get(curr);
         try {
             for (var next_1 = __values(next), next_1_1 = next_1.next(); !next_1_1.done; next_1_1 = next_1.next()) {
@@ -128,12 +209,12 @@ var Input = /** @class */ (function () {
                 }
             }
         }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        catch (e_5_1) { e_5 = { error: e_5_1 }; }
         finally {
             try {
                 if (next_1_1 && !next_1_1.done && (_a = next_1["return"])) _a.call(next_1);
             }
-            finally { if (e_2) throw e_2.error; }
+            finally { if (e_5) throw e_5.error; }
         }
     };
     return Input;
