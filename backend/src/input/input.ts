@@ -89,36 +89,36 @@ class Input {
     }
 
     private static checkSafety(ruleName: string, ruleMap: Map<string, string[][]>) {
+        console.log(ruleMap)
         // we want to do a traversal of the options, if all of the options have to loop back, we have an issue, otherwise we're safe
         ruleMap.get(ruleName).forEach(option => {
-            if(Input._only_loops(ruleName, option[0], [], ruleMap)) {
+            console.log(`rule: ${ruleName}`)
+            if(Input._only_loops(ruleName, [], ruleMap)) {
                 throw `Illegal Argument: Rule ${ruleName} contains a left recursion error.` 
             }
         })
     }
 
-    private static _only_loops(startRule: string, currRule: string, path: string[], ruleMap: Map<string, string[][]>): Boolean {
-        if (currRule === startRule) {
-            return true
-        }
-
+    private static _only_loops(currRule: string, path: string[], ruleMap: Map<string, string[][]>): Boolean {
+        console.log(`curr: ${currRule}, path: ${path}, options: ${ruleMap.get(currRule)}`)
         if (path.includes(currRule)) { 
             return true 
         }
 
         const newPath = path.concat(currRule)
-
         const ruleLoops: Boolean[] = []
         for(let option of ruleMap.get(currRule)) {
             // [false, true], [false]
             const optionLoops: Boolean[] = []
             for(let ruleRef of option) {
-                optionLoops.push(Input._only_loops(startRule, ruleRef, newPath, ruleMap))
+                optionLoops.push(Input._only_loops(ruleRef, newPath, ruleMap))
             }
 
             // if any rule_refs in an option loop, then the option loops
-            ruleLoops.push(optionLoops.reduce((acc: Boolean, curr: Boolean) => { return acc || curr }, false))
+            ruleLoops.push(optionLoops.reduce((acc: Boolean, curr: Boolean) => acc || curr, false))
         }
+
+        console.log(ruleLoops)
 
         if (ruleLoops.filter(option => option === false).length > 0 || ruleLoops.length === 0) { return false } else { return true }
     }

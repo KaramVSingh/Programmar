@@ -10,21 +10,20 @@ var res = app_1.entrypoint({
                 'name': 'string',
                 'type': input_1.InputRuleType.RULE,
                 'is': [
-                    [ { 'type': input_1.InputStatementType.LITERAL, 'ref': 'y' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'part' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': 'y' } ]
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'a' } ]
                 ]
             },
             {
-                'name': 'part',
+                'name': 'a',
                 'type': input_1.InputRuleType.RULE,
                 'is': [
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'data' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'part' } ],
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'data' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'string' } ],
                 ]
             },
             {
-                'name': 'data',
+                'name': 'd',
                 'type': input_1.InputRuleType.RULE,
-                'is': [ [{'type': input_1.InputStatementType.RULE, 'ref': 'string' }] ]
+                'is': [ [{'type': input_1.InputStatementType.LITERAL, 'ref': 'a' }] ]
             }
         ]
     }),
