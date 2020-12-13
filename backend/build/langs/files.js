@@ -116,9 +116,16 @@ function part(t, stmts, ruleName, curr, data, ERROR, result, children) {
         var rule = p.data;
         var toCall = new translatorUtils_1.Func(translatorUtils_1.AST, "_parse_" + rule, [curr], translatorUtils_1.Lines.of());
         var helper = genVar();
-        return translatorUtils_1.Lines.of(t["var"](helper, t.call(toCall, [curr])), t["if"](new translatorUtils_1.Condition(helper, translatorUtils_1.ConditionalOperator.NOT_EQUALS, ERROR), translatorUtils_1.Lines.of(t.set(curr, t.get(helper, new translatorUtils_1.Var('token', translatorUtils_1.TOKEN))), t.pushAstArray(children, helper), translatorUtils_1.BREAK_LINE, 
+        var section = translatorUtils_1.Lines.of(t["var"](helper, t.call(toCall, [curr])), t["if"](new translatorUtils_1.Condition(helper, translatorUtils_1.ConditionalOperator.NOT_EQUALS, ERROR), translatorUtils_1.Lines.of(t.set(curr, t.get(helper, new translatorUtils_1.Var('token', translatorUtils_1.TOKEN))), t.pushAstArray(children, helper), translatorUtils_1.BREAK_LINE, 
         // recurse
         part(t, stmts, ruleName, curr, data, ERROR, result, children)), null));
+        if (rule === ruleName) {
+            // we're calling ourselves, so we want to make sure we're not just calling ourself with the same data
+            return translatorUtils_1.Lines.of(t["if"](new translatorUtils_1.Condition(curr, translatorUtils_1.ConditionalOperator.NOT_EQUALS, new translatorUtils_1.Var('tokens', translatorUtils_1.TOKEN)), translatorUtils_1.Lines.of(section), translatorUtils_1.Lines.of(t.set(t.get(ERROR, data), t.strAdd(new translatorUtils_1.STRING_VALUE("Parse Error: Unexpected token -- "), t.call(_lookahead(t, curr), [curr]))), t.set(result, ERROR))));
+        }
+        else {
+            return section;
+        }
     }
 }
 function option(t, stmts, name, ERROR, result, token, curr, children, data) {
@@ -130,11 +137,9 @@ function _generate_rule_parser(t, r, token) {
     var curr = new translatorUtils_1.Var('curr', translatorUtils_1.TOKEN);
     var children = new translatorUtils_1.Var('children', translatorUtils_1.AST_LIST);
     var data = new translatorUtils_1.Var('data', translatorUtils_1.STRING);
-    var noEmpty = r.is
-        .sort(function (a, b) { return a.length - b.length; })
-        .filter(function (a) { return a.length > 0; });
-    var tackedOn = noEmpty.length === r.is.length ? noEmpty : noEmpty.concat([[]]);
-    var options = tackedOn.map(function (optn) {
+    var noEmpty = [];
+    noEmpty = r.is.sort(function (a, b) { return b.length - a.length; });
+    var options = noEmpty.map(function (optn) {
         return option(t, optn, r.name, ERROR, result, token, curr, children, data);
     });
     return new translatorUtils_1.Func(translatorUtils_1.AST, "_parse_" + r.name, [token], translatorUtils_1.Lines.of.apply(translatorUtils_1.Lines, __spread([t["var"](result, ERROR),

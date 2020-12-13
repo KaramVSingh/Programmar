@@ -201,7 +201,8 @@ function part(
         const rule = p.data as string
         const toCall = new Func(AST, `_parse_${rule}`, [curr], Lines.of())
         const helper = genVar()
-        return Lines.of(
+
+        const section = Lines.of(
             t.var(helper, t.call(toCall, [curr])),
             t.if(
                 new Condition(helper, ConditionalOperator.NOT_EQUALS, ERROR),
@@ -215,6 +216,24 @@ function part(
                 null
             )
         )
+
+        if(rule === ruleName) {
+            // we're calling ourselves, so we want to make sure we're not just calling ourself with the same data
+            return Lines.of(
+                t.if(
+                    new Condition(curr, ConditionalOperator.NOT_EQUALS, new Var('tokens', TOKEN)),
+                    Lines.of(
+                        section
+                    ),
+                    Lines.of(
+                        t.set(t.get(ERROR, data), t.strAdd(new STRING_VALUE("Parse Error: Unexpected token -- "), t.call(_lookahead(t, curr), [curr]))),
+                        t.set(result, ERROR)
+                    )
+                )
+            )
+        } else {
+            return section
+        }
     }
 }
 
@@ -253,12 +272,10 @@ function _generate_rule_parser(t: GrandLanguageTranslator, r: Rule, token: Var):
     const children = new Var('children', AST_LIST)
     const data = new Var('data', STRING)
 
-    const noEmpty = r.is
-        .sort((a: Statement[], b: Statement[]) => a.length - b.length)
-        .filter((a: Statement[]) => a.length > 0)
+    let noEmpty: Statement[][] = []
+    noEmpty = r.is.sort((a: Statement[], b: Statement[]) => b.length - a.length)
 
-    const tackedOn = noEmpty.length === r.is.length ? noEmpty : noEmpty.concat([[]])
-    const options = tackedOn.map(optn => {
+    const options = noEmpty.map(optn => {
         return option(t, optn, r.name, ERROR, result, token, curr, children, data)
     })
 

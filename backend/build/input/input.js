@@ -74,7 +74,14 @@ var Input = /** @class */ (function () {
                 firsts.set(input.rules[i].name, []);
                 if (input.rules[i].type === InputRuleType.RULE) {
                     var statements = input.rules[i].is;
+                    // auto success rules cause big'ol problems with recursion ([^a]*)
+                    if (statements.length === 0) {
+                        throw "Illegal Argument: " + input.rules[i].name + " has an empty option.";
+                    }
                     for (var j = 0; j < statements.length; j++) {
+                        if (statements[j].length === 0) {
+                            throw "Illegal Argument: " + input.rules[i].name + " has an empty option.";
+                        }
                         if (statements[j].length > 0 && statements[j][0].type === InputStatementType.RULE) {
                             firsts.get(input.rules[i].name).push(statements[j][0].ref);
                         }
@@ -156,7 +163,6 @@ var Input = /** @class */ (function () {
         try {
             for (var _c = __values(ruleMap.get(currRule)), _d = _c.next(); !_d.done; _d = _c.next()) {
                 var option = _d.value;
-                // [false, true], [false]
                 var optionLoops = [];
                 try {
                     for (var option_1 = (e_4 = void 0, __values(option)), option_1_1 = option_1.next(); !option_1_1.done; option_1_1 = option_1.next()) {
@@ -197,7 +203,7 @@ var Input = /** @class */ (function () {
                 var rule = next_1_1.value;
                 if (path.has(rule)) {
                     path.add(rule);
-                    throw "Illegal Argument: Path containing " + Array.from(path) + " has left recursion error.";
+                    throw "Illegal Argument: Path containing [" + Array.from(path) + "] has a left recursion error.";
                 }
                 else {
                     var nPath = new Set(path);

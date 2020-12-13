@@ -10,21 +10,21 @@ var res = app_1.entrypoint({
                 'name': 'string',
                 'type': input_1.InputRuleType.RULE,
                 'is': [
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'a' } ]
+                    [ { 'type': input_1.InputStatementType.LITERAL, 'ref': 'a' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'a' }, { 'type': input_1.InputStatementType.LITERAL, 'ref': 'a' } ]
                 ]
             },
             {
                 'name': 'a',
                 'type': input_1.InputRuleType.RULE,
                 'is': [
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'string' } ],
-                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'd' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'b' }, { 'type': input_1.InputStatementType.RULE, 'ref': 'a' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'b' } ]
                 ]
             },
             {
-                'name': 'd',
-                'type': input_1.InputRuleType.RULE,
-                'is': [ [{'type': input_1.InputStatementType.LITERAL, 'ref': 'a' }] ]
+                'name': 'b',
+                'type': input_1.InputRuleType.REGEX,
+                'is': '[^a]*'
             }
         ]
     }),
