@@ -95,9 +95,11 @@ async function generateParser(cfg) {
     const aggregated = (lexerSrc + parserSrc).replace(/^export.*$/gm, '');
 
     parser = (input) => { 
-      const trigger = `parse(lex('${input.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n")}'))`;
+      const lex = `lex('${input.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n")}')`
+      const trigger = `parse(${lex})`;
       console.log(aggregated);
       console.log(trigger);
+      console.log(eval(aggregated + '\n'+ lex))
       eval(aggregated + '\n' + trigger);
     }
   }
