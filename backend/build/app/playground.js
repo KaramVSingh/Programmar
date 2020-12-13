@@ -18,6 +18,7 @@ var res = app_1.entrypoint({
                 'type': input_1.InputRuleType.RULE,
                 'is': [
                     [ { 'type': input_1.InputStatementType.RULE, 'ref': 'string' } ],
+                    [ { 'type': input_1.InputStatementType.RULE, 'ref': 'd' } ],
                 ]
             },
             {

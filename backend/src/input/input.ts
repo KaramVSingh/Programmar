@@ -86,13 +86,15 @@ class Input {
         for(let [name] of ruleMap) {
             Input.checkSafety(name, ruleMap)
         }
+
+        for(let [key] of firsts) {
+            Input.checkPath(firsts, new Set<string>([key]), key)
+        }
     }
 
     private static checkSafety(ruleName: string, ruleMap: Map<string, string[][]>) {
-        console.log(ruleMap)
         // we want to do a traversal of the options, if all of the options have to loop back, we have an issue, otherwise we're safe
         ruleMap.get(ruleName).forEach(option => {
-            console.log(`rule: ${ruleName}`)
             if(Input._only_loops(ruleName, [], ruleMap)) {
                 throw `Illegal Argument: Rule ${ruleName} contains a left recursion error.` 
             }
@@ -100,7 +102,6 @@ class Input {
     }
 
     private static _only_loops(currRule: string, path: string[], ruleMap: Map<string, string[][]>): Boolean {
-        console.log(`curr: ${currRule}, path: ${path}, options: ${ruleMap.get(currRule)}`)
         if (path.includes(currRule)) { 
             return true 
         }
@@ -108,7 +109,6 @@ class Input {
         const newPath = path.concat(currRule)
         const ruleLoops: Boolean[] = []
         for(let option of ruleMap.get(currRule)) {
-            // [false, true], [false]
             const optionLoops: Boolean[] = []
             for(let ruleRef of option) {
                 optionLoops.push(Input._only_loops(ruleRef, newPath, ruleMap))
@@ -118,9 +118,21 @@ class Input {
             ruleLoops.push(optionLoops.reduce((acc: Boolean, curr: Boolean) => acc || curr, false))
         }
 
-        console.log(ruleLoops)
-
         if (ruleLoops.filter(option => option === false).length > 0 || ruleLoops.length === 0) { return false } else { return true }
+    }
+
+    private static checkPath(firsts: Map<string, string[]>, path: Set<string>, curr: string) {
+        const next: string[] = firsts.get(curr)
+        for(let rule of next) {
+            if(path.has(rule)) {
+                path.add(rule)
+                throw `Illegal Argument: Path containing [${Array.from(path)}] has a left recursion error.`
+            } else {
+                const nPath: Set<string> = new Set(path)
+                nPath.add(rule)
+                Input.checkPath(firsts, nPath, rule)
+            }
+        }
     }
 }
 
