@@ -52,8 +52,6 @@ function GrammarOption({ ruleIdMapping, option, setOption, deleteOption }) {
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
 
             toDraw.push(n);
         } else {

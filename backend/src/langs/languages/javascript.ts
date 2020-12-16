@@ -303,6 +303,7 @@ class Javascript implements GrandLanguageTranslator {
                     .replace(/\n/g, "\\n")
                     .replace(/\r/g, "\\r")
                     .replace(/\\/g, "\\\\")
+                    .replace(/'/g, "\\'")
 
                 return new Var(`'${normalized}'`, STRING)
             case AST_LIST:
