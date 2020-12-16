@@ -145,7 +145,7 @@ function part(
         } else {
             // If we're looking at a real life range!
             const gen = (isAffirmative: boolean, ranges: [string, string][]) => {
-                if (ranges.length === 0) { return new BOOLEAN_VALUE(true) }
+                if (ranges.length === 0) { return new BOOLEAN_VALUE(!isAffirmative) }
 
                 const range = ranges.shift()
                 const currString = t.get(curr, new Var(`curr`, STRING))
@@ -155,7 +155,7 @@ function part(
                         ConditionalOperator.EQUALS,
                         new BOOLEAN_VALUE(isAffirmative)
                     ),
-                    ConditionalOperator.AND,
+                    isAffirmative ? ConditionalOperator.OR : ConditionalOperator.AND,
                     gen(isAffirmative, ranges)
                 )
             }

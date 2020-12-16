@@ -99,7 +99,6 @@ async function generateParser(cfg) {
       const trigger = `parse(${lex})`;
       console.log(aggregated);
       console.log(trigger);
-      console.log(eval(aggregated + '\n'+ lex))
       eval(aggregated + '\n' + trigger);
     }
   }
